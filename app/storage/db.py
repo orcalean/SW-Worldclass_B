@@ -1,4 +1,5 @@
-"""Persistence: SQLAlchemy (SQLite by default, Postgres via SWC_DATABASE_URL) + content-addressed blob dir."""
+"""Persistence: SQLAlchemy (SQLite by default, Postgres/Supabase via DATABASE_URL) + content-addressed blob dir.
+Schema changes go through Alembic migrations (migrations/); see app/storage/migrate.py."""
 from __future__ import annotations
 
 import uuid
@@ -95,10 +96,16 @@ class Job(Base):
 
 @lru_cache
 def _sessionmaker() -> sessionmaker[Session]:
+    from app.storage.migrate import upgrade
+
     s = get_settings()
-    url = s.database_url or f"sqlite:///{(s.data_dir / 'swc.db').resolve()}"
-    engine = create_engine(url, connect_args={"check_same_thread": False} if url.startswith("sqlite") else {})
-    Base.metadata.create_all(engine)
+    url = s.db_url()
+    upgrade(s.migration_db_url())
+    if url.startswith("sqlite"):
+        engine = create_engine(url, connect_args={"check_same_thread": False})
+    else:
+        # Transaction-mode poolers (Supabase :6543, pgbouncer) don't support prepared statements.
+        engine = create_engine(url, pool_pre_ping=True, connect_args={"prepare_threshold": None})
     return sessionmaker(engine, expire_on_commit=False)
 
 

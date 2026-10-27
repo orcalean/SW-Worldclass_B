@@ -15,6 +15,7 @@ SOP benchmark audit API (SWP Step 2 · SWI · SQDCME). Takes any SOP, extracts i
    - Rubrics and policy are data (`rubrics/`); don't hard-code checks or weights.
    - Bump `EXTRACT_PROMPT_VERSION` / `PROMPT_VERSION` / `ENGINE_VERSION` / rubric or policy `version` when behaviour changes (they key the caches).
    - `offline` provider results are heuristic demos and must stay labelled.
+   - Schema changes only via Alembic migrations; never `create_all`.
    - Never commit `.env`. Don't commit unless the owner asks.
 
 ## Read
@@ -42,7 +43,9 @@ app/
   rubric/               importer.py (xlsx → JSON), registry.py (catalogue + policy)
   llm/client.py         LLM protocol, AnthropicLLM, ScriptedLLM, pricing/usage
   storage/db.py         SQLAlchemy models, session(), Blobs
+  storage/migrate.py    runs Alembic upgrade on first connect
   jobs/runner.py        in-process async jobs backed by the jobs table
+migrations/             Alembic env.py + versions/ (schema history)
 rubrics/                dimensions.json, policy@1.0.json, quality/core1@1.0.json, source/*.xlsx
 tests/unit/             test_rubric, test_scorer, test_evaluation, test_ingestion, test_api
 tests/fixtures/         badge_sop.json
@@ -53,16 +56,18 @@ docs/                   architecture/, design/, features/, decisions/, progress/
 ```bash
 uv sync
 uv run uvicorn app.main:app --port 8000     # reads .env; SWC_LLM_PROVIDER=offline for a no-key demo
-uv run pytest                                # 28 tests at time of writing
+uv run pytest                                # 29 tests; always on a temp SQLite file, never the .env database
+uv run alembic revision --autogenerate -m "x" # after changing models in app/storage/db.py; review + commit the file
+uv run alembic upgrade head                  # apply migrations (the app also does this on first connect)
 uv run python -m app.rubric.importer rubrics/source/<file>.xlsx rubrics/quality/core1@1.0.json --dimension Q --core 1 --version 1.0
-# from the parent folder: docker compose up --build   → API + UI together (untested so far)
+# from the parent folder: docker compose up --build   → API + UI together (rebuild after dependency or migration changes)
 ```
 
 ## Adding an endpoint
 1. Add request/response models near the top of `app/api/v1/routes.py` (or reuse a contract from `app/contracts/`).
 2. Add the handler to `router`. Keep it thin: validate, call `services.*` or a module, map to the response model. Auth comes from the router dependency `require_key`.
 3. Anything that calls an LLM or takes seconds runs as a job: `runner.submit(kind, work)` where `work(stage)` returns `(result_type, result_id, inline_result)`; respond `202` with the job id (see the `ingest` / `evaluate` handlers).
-4. DB: `with db.session() as ses: ...; ses.commit()`. New tables go in `app/storage/db.py` (created by `create_all`; no migrations yet).
+4. DB: `with db.session() as ses: ...; ses.commit()`. New tables/columns go in `app/storage/db.py`, then `uv run alembic revision --autogenerate` (review the file; it ships with the change).
 5. Test in `tests/unit/test_api.py` with the `client` fixture (offline provider, temp data dir); `await wait(client, job_id)` for jobs.
 6. `uv run pytest`; if a contract changed, note it in the handoff so the frontend regenerates types.
 
@@ -82,13 +87,16 @@ uv run python -m app.rubric.importer rubrics/source/<file>.xlsx rubrics/quality/
 | `SWC_REFUSAL_FALLBACK` | true | server-side refusal fallback |
 | `SWC_MAX_CONCURRENCY`, `SWC_PAGES_PER_EXTRACTION_CALL` | 6, 4 | throughput |
 | `SWC_DATA_DIR` | `./data` (relative to cwd) | SQLite file + blobs |
-| `SWC_DATABASE_URL` | SQLite in data dir | any SQLAlchemy URL |
+| `DATABASE_URL` | – | Supabase transaction pooler (:6543), used by the app |
+| `DIRECT_URL` | – | Supabase session/direct (:5432), used by migrations |
+| `SWC_DATABASE_URL` | – | overrides `DATABASE_URL` (tests); none set = SQLite in data dir |
 | `SWC_API_KEYS` | empty (auth off) | comma-separated keys for `X-API-Key` |
 | `SWC_CORS_ORIGINS` | `http://localhost:5173` | comma-separated |
 
 ## Gotchas
 - `get_settings()` and `db._sessionmaker()` are `lru_cache`d; tests clear them in `tests/conftest.py`.
-- Tests load `.env` too; the fixture doesn't override `SWC_DATABASE_URL` (STATUS known issue).
+- Tests load `.env` too; `tests/conftest.py` forces `SWC_DATABASE_URL` to temp SQLite so they never hit Supabase. Keep it that way.
+- Supabase transaction pooler (:6543) can't use prepared statements: the engine sets `prepare_threshold=None`. Don't remove it.
 - The API rejects `temperature`; Sonnet 5.5 rejects forced `tool_choice`. Use `beta.messages.stream(output_format=...)` + `get_final_message()` (non-streaming calls with large `max_tokens` are refused by the SDK).
 - Header metadata is indexed as `field: value` for quote verification (`SOPDocument.all_text`).
 - Without LibreOffice, DOCX/PPTX/XLSX fall back to native extraction (no page renders).

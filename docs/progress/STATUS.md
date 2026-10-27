@@ -1,9 +1,9 @@
 # Status (backend)
 
-Last updated: 2026-10-24 (evening)
+Last updated: 2026-10-27
 
 ## Current state
-Phase 1 is built end-to-end: upload → extraction review → optional L2/L3 evidence → assess → audit screen → re-upload as a new revision. Quality Core 1 (56 checks) is the only assessed rubric. All 28 backend tests pass; frontend type-checks and builds. First real Claude run done on a synthetic 1-page PDF: extraction $0.015 / 17 s, evaluation $0.14 / 30 s (12 calls, cache reads working). Not yet run on a real customer SOP. Own git repo (the UI is a separate repo at `../frontend`), no commits.
+Phase 1 is built end-to-end: upload → extraction review → optional L2/L3 evidence → assess → audit screen → re-upload as a new revision. Quality Core 1 (56 checks) is the only assessed rubric. Database is Supabase Postgres with Alembic migrations (ADR 0008). All 29 backend tests pass; frontend type-checks and builds. First real Claude run done on a synthetic 1-page PDF: extraction $0.015 / 17 s, evaluation $0.14 / 30 s (12 calls, cache reads working). Not yet run on a real customer SOP. Own git repo (the UI is a separate repo at `../frontend`), no commits.
 
 ## In progress
 - Nothing.
@@ -17,13 +17,13 @@ Phase 1 is built end-to-end: upload → extraction review → optional L2/L3 evi
 - Get SWP's SOP data model and align `SOPDocument` before Ph2 (ADR 0002).
 - Import other cores' workbooks when available (ADR 0004).
 - Build and test the Docker setup (`docker-compose.yml` in the parent folder, outside both repos).
-- User login / roles (none exist; see `docs/architecture/auth-and-access.md`).
+- Decide: move uploaded files (blobs) to Supabase Storage; they're still on local disk / the Docker volume.
+- User login / roles (none exist; Supabase Auth is an option; see `docs/architecture/auth-and-access.md`).
 - Decide persistence/jobs for production (currently SQLite + in-process runner; not an ADR yet).
 
 ## Known issues
 - **Security (frontend side):** the UI's `VITE_API_KEY` is visible in the browser bundle; tracked in the frontend repo STATUS.
 - **Images break when API keys are on:** `<img src="/v1/blobs/...">` can't send `X-API-Key`, but `/v1/blobs` requires it (`app/api/v1/routes.py`, frontend repo `src/pages/ReviewPage.tsx`).
-- **Tests can touch a real DB:** tests now load `.env`; the `offline_env` fixture (`tests/conftest.py`) overrides data dir, provider and API keys but not `SWC_DATABASE_URL`.
 - **Jobs lost on restart:** the in-process runner marks running jobs failed at startup; clients must resubmit (`app/jobs/runner.py`).
 - **Cost under-reported:** station-photo description calls (`services.evidence_from_bytes`) are not added to any assessment's `usage.cost_usd`.
 - **`SWC_DATA_DIR` default is relative** (`./data`), so the data location depends on the working directory.
@@ -32,6 +32,7 @@ Phase 1 is built end-to-end: upload → extraction review → optional L2/L3 evi
 - Docker image never built.
 
 ## Done
+- Supabase Postgres + Alembic migrations; app migrates on startup; tests isolated on temp SQLite (2026-10-27).
 - Rubric importer + Core 1 JSON (56 checks, synced with the workbook by test).
 - Contracts: `SOPDocument`, `EvidenceItem`, `EvaluationResult`, rubric/policy.
 - Ingestion (PDF/DOCX/PPTX/XLSX/images), vision structuring, cross-page merge, coverage warnings.

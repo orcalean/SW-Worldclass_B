@@ -1,6 +1,8 @@
 # Data model
 
-SQLAlchemy models in `app/storage/db.py`. Tables are created with `Base.metadata.create_all` on first session; there are no migrations yet. Default database: SQLite at `<SWC_DATA_DIR>/swc.db`.
+SQLAlchemy models in `app/storage/db.py`. Database: **Supabase Postgres** via `DATABASE_URL` / `DIRECT_URL` (ADR 0008); without them, SQLite at `<SWC_DATA_DIR>/swc.db`.
+
+Schema changes go through **Alembic** (`migrations/versions/`). The app runs `alembic upgrade head` on first connect (`app/storage/migrate.py`, using `DIRECT_URL`); a pre-Alembic SQLite file (tables but no `alembic_version`) is stamped as the initial revision so its data is kept. To change the schema: edit the models, then `uv run alembic revision --autogenerate -m "<what>"`, review the generated file, commit it.
 
 ```mermaid
 erDiagram
