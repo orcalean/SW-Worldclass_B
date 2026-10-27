@@ -1,0 +1,15 @@
+{
+  "dimensions": [
+    { "key": "S", "name": "Safety", "cores": [] },
+    { "key": "Q", "name": "Quality", "cores": [
+      { "number": 1, "name": "Requirement Known", "file": "quality/core1@1.0.json" },
+      { "number": 2, "name": "Method Robust" },
+      { "number": 3, "name": "Quality Built at Source" },
+      { "number": 4, "name": "Station Ready" }
+    ] },
+    { "key": "D", "name": "Delivery", "cores": [] },
+    { "key": "C", "name": "Cost", "cores": [] },
+    { "key": "M", "name": "Morale / People", "cores": [] },
+    { "key": "E", "name": "Environment", "cores": [] }
+  ]
+}

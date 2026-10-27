@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "benchmark": 90,
+  "verdict_points": { "met": 1.0, "partial": 0.5, "gap": 0.0 },
+  "check_weights": {},
+  "subcategory_weights": {},
+  "core_weights": {},
+  "blocking_checks": ["Q01-3-01", "Q01-7-01", "Q01-7-04", "Q01-8-02", "Q01-11-01", "Q01-11-03"],
+  "require_evidence_levels": ["L2", "L3"],
+  "na_requires_reason": true,
+  "low_confidence_threshold": 0.6
+}

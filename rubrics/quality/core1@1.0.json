@@ -1,0 +1,884 @@
+{
+  "id": "Q.core1",
+  "dimension": "Q",
+  "number": 1,
+  "name": "Requirement Known",
+  "question": "Core 1 asks: Do we know exactly what conforming quality means for this operation? Level 1 and Level 2 are Industry-Gold baselines. Level 3 supplies the exact customer/product/process requirement and overrides generic/local values when more specific.",
+  "boundary": "Core 1 boundary: This Core defines WHAT the required quality result is. Detailed execution technique belongs in Core 2 Method Robust; prevention/control strength belongs in Core 3 Quality Built at Source; physical environment/tooling capability belongs in Cores 4 and 6; operator competence belongs in Core 7.",
+  "level_roles": {
+    "L1": "SWI Robustness: Industry-gold minimum for how completely and clearly the requirement must be defined in the standard work.",
+    "L2": "Station Readiness: Industry-gold minimum for how the requirement must be presented, identifiable and usable at the real station.",
+    "L3": "Customer Specific: Exact customer/product/process values, classifications, applicability, revisions, test conditions and mandatory requirements."
+  },
+  "subcategories": [
+    {
+      "id": "1.1",
+      "name": "Quality Characteristic / Intended Result",
+      "purpose": "Identify the exact quality result/characteristic.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-1-01",
+          "subcategory_id": "1.1",
+          "requirement": "Quality result explicitly identified",
+          "criteria": {
+            "L1": "Every quality-relevant operation states the product/process result that must be achieved or verified; an action verb alone (install, inspect, assemble, check) is not sufficient.",
+            "L2": "The physical feature/result being created or verified is unambiguously identifiable at the station.",
+            "L3": "The exact product/process characteristic is defined by the released customer/engineering source."
+          },
+          "evidence_inputs": "SWI/JES/process sheet + station image/video + engineering/customer documents",
+          "primary_source": "Vehicle Control Plan; Process Sheet & SWI Standard",
+          "supporting_source": "5QFZD",
+          "notes": "Core 1 defines WHAT good is; HOW to create it belongs in Core 2."
+        },
+        {
+          "benchmark_id": "Q01-1-02",
+          "subcategory_id": "1.1",
+          "requirement": "Multiple characteristics separated",
+          "criteria": {
+            "L1": "When one job affects multiple independent quality characteristics, each required result is separately identifiable in the SWI rather than buried in one generic instruction.",
+            "L2": "Each characteristic can be mapped to the actual feature/location at the station.",
+            "L3": "The customer/engineering requirement set identifies all applicable characteristics for the product/process."
+          },
+          "evidence_inputs": "SWI + feature map/photo + VCP/Control Plan/engineering",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "5QFZD",
+          "notes": "Do not collapse several distinct quality outcomes into one vague instruction."
+        },
+        {
+          "benchmark_id": "Q01-1-03",
+          "subcategory_id": "1.1",
+          "requirement": "Output condition stated, not only task completion",
+          "criteria": {
+            "L1": "The SWI distinguishes completion of the task from achievement of the required output condition.",
+            "L2": "The station provides a recognizable physical/result state corresponding to the defined output condition.",
+            "L3": "Customer/engineering defines the actual conforming output condition."
+          },
+          "evidence_inputs": "SWI + station evidence + specification",
+          "primary_source": "CX-F07 Standardize Workstation",
+          "supporting_source": "Process Observation Supporting Standardized Work",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-1-04",
+          "subcategory_id": "1.1",
+          "requirement": "Characteristic wording is objective enough to evaluate",
+          "criteria": {
+            "L1": "Quality-result wording is specific enough that two trained operators should interpret the intended result the same way.",
+            "L2": "The station does not introduce ambiguity about which characteristic/result is being judged.",
+            "L3": "Any customer-defined terminology or characteristic naming convention is preserved."
+          },
+          "evidence_inputs": "SWI + operator-facing display + customer terminology",
+          "primary_source": "5QFZD",
+          "supporting_source": "RJA; Yamashina QC",
+          "notes": "Avoid words such as 'proper', 'good', 'acceptable' unless the acceptance condition is defined elsewhere."
+        }
+      ]
+    },
+    {
+      "id": "1.2",
+      "name": "Good / Bad & Acceptance Boundary",
+      "purpose": "Define the boundary between conforming and nonconforming.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-2-01",
+          "subcategory_id": "1.2",
+          "requirement": "Acceptable and unacceptable states defined",
+          "criteria": {
+            "L1": "For every characteristic requiring judgment, the SWI defines the acceptance boundary sufficiently to distinguish conforming from nonconforming output.",
+            "L2": "The operator/inspector can compare the actual result to the acceptance boundary at the point of decision.",
+            "L3": "The exact good/bad boundary comes from customer/engineering specifications, masters, defect standards, or approved criteria."
+          },
+          "evidence_inputs": "SWI/visual standard + station reference + customer standard",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "5QFZD; Surface Appearance Standard",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-2-02",
+          "subcategory_id": "1.2",
+          "requirement": "Subjective descriptors anchored",
+          "criteria": {
+            "L1": "Subjective terms such as appearance, flush, secure, aligned, smooth, clean, noise-free, etc. are supported by a defined reference, limit, example, or measurable boundary when they drive acceptance.",
+            "L2": "The necessary reference/master/example is available under representative station conditions.",
+            "L3": "Customer-specific defect definitions, zone rules, master samples, boundary samples, or other acceptance standards apply."
+          },
+          "evidence_inputs": "SWI + visual/master + customer appearance/quality standard",
+          "primary_source": "Surface Appearance Standards",
+          "supporting_source": "Vehicle Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-2-03",
+          "subcategory_id": "1.2",
+          "requirement": "Defect type defined",
+          "criteria": {
+            "L1": "Where inspection is required, the SWI identifies the defect/abnormality to be detected rather than only saying 'inspect' or 'check'.",
+            "L2": "The defect is recognizable at the station using the provided reference/definition.",
+            "L3": "Customer standards define exact defect classes, severity, size/frequency, or prohibited conditions where applicable."
+          },
+          "evidence_inputs": "SWI + inspection standard + customer defect criteria",
+          "primary_source": "Surface Appearance Standards",
+          "supporting_source": "MQGR79; CX-F04 Verification Check",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-2-04",
+          "subcategory_id": "1.2",
+          "requirement": "Pass/fail decision rule explicit",
+          "criteria": {
+            "L1": "When a result is judged by a test, measurement, visual comparison, count, or functional check, the SWI states or references the pass/fail rule.",
+            "L2": "The station display/gauge/reference permits the pass/fail decision using the same rule.",
+            "L3": "Customer/process standard supplies the exact pass/fail criteria."
+          },
+          "evidence_inputs": "SWI + station tool/display + test/customer requirement",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "9 Position Water Test; Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-2-05",
+          "subcategory_id": "1.2",
+          "requirement": "Borderline condition addressed where relevant",
+          "criteria": {
+            "L1": "Where normal variation can produce borderline results, the standard defines how the boundary is treated rather than leaving escalation to personal judgment.",
+            "L2": "The station provides the needed reference or escalation path for borderline decisions.",
+            "L3": "Customer/engineering owns any exact boundary, deviation, approval, or master-sample rule."
+          },
+          "evidence_inputs": "SWI + station reference + deviation/customer standard",
+          "primary_source": "Surface Appearance Standards",
+          "supporting_source": "Vehicle Control Plan",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.3",
+      "name": "Target / Limits / Tolerance / Units",
+      "purpose": "Define measurable values, limits, tolerances and units.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-3-01",
+          "subcategory_id": "1.3",
+          "requirement": "Numeric requirement stated where measurable",
+          "criteria": {
+            "L1": "Every measurable quality characteristic needed by the operator is defined by a target, limit, range, or other quantitative acceptance criterion rather than 'per spec' or qualitative wording alone.",
+            "L2": "The station tool/display/reference uses the same numerical requirement.",
+            "L3": "The exact nominal/limits/tolerance are supplied by the released customer/engineering requirement."
+          },
+          "evidence_inputs": "SWI + tool/display + engineering spec",
+          "primary_source": "5QFZD",
+          "supporting_source": "Process Sheet & SWI Standard",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-3-02",
+          "subcategory_id": "1.3",
+          "requirement": "Units explicitly defined",
+          "criteria": {
+            "L1": "Every numerical requirement includes unambiguous units where units are relevant.",
+            "L2": "Station indication and measurement use the same unit or an automatically controlled equivalent with no operator conversion.",
+            "L3": "Customer/engineering defines the authoritative unit and any allowed conversion."
+          },
+          "evidence_inputs": "SWI + station display + spec",
+          "primary_source": "5QFZD",
+          "supporting_source": "F6 WO Organizing Workstation",
+          "notes": "Gold standard avoids mental conversion at point of use."
+        },
+        {
+          "benchmark_id": "Q01-3-03",
+          "subcategory_id": "1.3",
+          "requirement": "Direction of limit defined",
+          "criteria": {
+            "L1": "One-sided requirements state whether the boundary is minimum, maximum, not-to-exceed, at-least, etc.",
+            "L2": "The station makes the correct direction of acceptance obvious.",
+            "L3": "Customer/engineering defines the exact one-sided limit."
+          },
+          "evidence_inputs": "SWI + display + engineering source",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "Surface Appearance Standards",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-3-04",
+          "subcategory_id": "1.3",
+          "requirement": "Tolerance/band defined when nominal alone is insufficient",
+          "criteria": {
+            "L1": "A nominal value is not treated as a complete requirement when actual acceptance depends on an allowable band/tolerance.",
+            "L2": "Station measurement or control references the correct allowable band.",
+            "L3": "Customer/engineering establishes the applicable tolerance/band."
+          },
+          "evidence_inputs": "SWI + measurement display + engineering spec",
+          "primary_source": "5QFZD",
+          "supporting_source": "Surface Appearance Standards",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-3-05",
+          "subcategory_id": "1.3",
+          "requirement": "Count / quantity / frequency acceptance defined where product quality depends on it",
+          "criteria": {
+            "L1": "Where quality acceptance depends on count, number of defects, spacing, quantity, or repeated occurrences, the SWI states the applicable acceptance rule.",
+            "L2": "The station supports the same count/quantity rule without forcing memory or interpretation.",
+            "L3": "Customer standard supplies exact count/frequency/spacing rules."
+          },
+          "evidence_inputs": "SWI + visual aid + customer standard",
+          "primary_source": "Surface Appearance Standards",
+          "supporting_source": "Vehicle Control Plan",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.4",
+      "name": "Acceptance Context / Test & Inspection Conditions",
+      "purpose": "Define the conditions under which acceptance is valid.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-4-01",
+          "subcategory_id": "1.4",
+          "requirement": "Acceptance condition includes required test/inspection context",
+          "criteria": {
+            "L1": "When acceptance depends on how the result is observed or tested, the SWI states or references the necessary test/inspection conditions.",
+            "L2": "The station can present the product under the required conditions when the decision is made.",
+            "L3": "Customer/process standards define exact test/inspection conditions."
+          },
+          "evidence_inputs": "SWI + station setup + process/customer standard",
+          "primary_source": "Surface Appearance Standards",
+          "supporting_source": "9 Position Water Test; MQGR79",
+          "notes": "The exact station capability to achieve those conditions is assessed in later Cores; Core 1 asks whether the condition itself is known."
+        },
+        {
+          "benchmark_id": "Q01-4-02",
+          "subcategory_id": "1.4",
+          "requirement": "Viewing/observation condition known when it changes acceptance",
+          "criteria": {
+            "L1": "Visual acceptance criteria identify any required viewing distance, orientation, surface position, zone, or equivalent observation condition when it changes good/bad interpretation.",
+            "L2": "The required viewing/observation condition is identifiable and usable at the station.",
+            "L3": "Customer appearance/inspection standards provide exact viewing and zone rules."
+          },
+          "evidence_inputs": "SWI/visual standard + station + appearance standard",
+          "primary_source": "Surface Appearance Standards",
+          "supporting_source": "MQGR79",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-4-03",
+          "subcategory_id": "1.4",
+          "requirement": "Product precondition known",
+          "criteria": {
+            "L1": "When test/inspection validity depends on product condition (clean, dry, assembled state, temperature, pressure, etc.), the required precondition is stated or referenced.",
+            "L2": "The station can identify whether the product is in the required precondition before judgment.",
+            "L3": "Customer/process standard defines the exact precondition."
+          },
+          "evidence_inputs": "SWI + station evidence + test standard",
+          "primary_source": "MQGR79",
+          "supporting_source": "9 Position Water Test",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-4-04",
+          "subcategory_id": "1.4",
+          "requirement": "Test sequence/state applicability known",
+          "criteria": {
+            "L1": "Where acceptance changes by process stage or product state, the SWI identifies the correct stage/state at which the requirement applies.",
+            "L2": "The station/product state is identifiable at the point the requirement is used.",
+            "L3": "Customer/process standard defines the exact test stage/state."
+          },
+          "evidence_inputs": "SWI + process state evidence + customer/process standard",
+          "primary_source": "9 Position Water Test",
+          "supporting_source": "Vehicle Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-4-05",
+          "subcategory_id": "1.4",
+          "requirement": "Required reference/standard condition identified",
+          "criteria": {
+            "L1": "If acceptance relies on a master, limit sample, gauge setting, inspection standard, checklist, or approved reference, the SWI identifies the applicable reference.",
+            "L2": "The correct reference is available and clearly associated with the station/product.",
+            "L3": "Customer/engineering identifies the exact controlled reference and revision."
+          },
+          "evidence_inputs": "SWI + master/reference + customer document",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "MQGR79; Surface Appearance Standards",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.5",
+      "name": "Feature / Location / Zone Applicability",
+      "purpose": "Define exactly where/which feature the requirement applies to.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-5-01",
+          "subcategory_id": "1.5",
+          "requirement": "Physical feature/location explicitly identified",
+          "criteria": {
+            "L1": "The SWI identifies the exact feature, side, position, hole, surface, zone, connector, joint, datum, component location, etc. to which the requirement applies whenever confusion is possible.",
+            "L2": "The physical location can be recognized at the station without interpretation.",
+            "L3": "Customer drawing/specification defines the authoritative feature/location."
+          },
+          "evidence_inputs": "SWI/graphic + station image + drawing/spec",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "Process Sheet & SWI Standard",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-5-02",
+          "subcategory_id": "1.5",
+          "requirement": "Multiple locations distinguished",
+          "criteria": {
+            "L1": "When the same type of operation occurs at several locations with different requirements, each location is separately identified.",
+            "L2": "The station/product presentation makes the locations distinguishable.",
+            "L3": "Customer engineering defines any location-specific values or acceptance criteria."
+          },
+          "evidence_inputs": "SWI + station/product image + engineering",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "Surface Appearance Standards",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-5-03",
+          "subcategory_id": "1.5",
+          "requirement": "Surface/inspection zone classification identified",
+          "criteria": {
+            "L1": "Where acceptance depends on zone/class, the SWI identifies the applicable zone/class rather than using one generic requirement.",
+            "L2": "The operator/inspector can determine which zone/class is being evaluated.",
+            "L3": "Customer appearance/engineering standard defines exact zone/class boundaries."
+          },
+          "evidence_inputs": "SWI + zone map + customer standard",
+          "primary_source": "Surface Appearance Standards",
+          "supporting_source": "Vehicle Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-5-04",
+          "subcategory_id": "1.5",
+          "requirement": "Graphic or visual localization used where text is insufficient",
+          "criteria": {
+            "L1": "A graphic/photo/diagram is used when text alone could reasonably lead to feature/location confusion.",
+            "L2": "The graphic corresponds to the actual station/product orientation.",
+            "L3": "Customer/product-specific graphics or engineering views are used where necessary."
+          },
+          "evidence_inputs": "SWI graphic + station/product evidence",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "Process Sheet & SWI Standard",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-5-05",
+          "subcategory_id": "1.5",
+          "requirement": "Start/stop boundary of responsibility defined where quality ownership spans work zones",
+          "criteria": {
+            "L1": "Where operator/inspector responsibility depends on a defined work zone or start/stop boundary, the standard identifies that boundary.",
+            "L2": "The boundary is visible/recognizable at the station.",
+            "L3": "Customer/plant-specific boundary rules are applied where required."
+          },
+          "evidence_inputs": "SWI/SOS + footprint/station markings + plant/customer requirement",
+          "primary_source": "CX-F07 Standardize Workstation",
+          "supporting_source": "MQGR79",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.6",
+      "name": "Product / Variant / Applicability",
+      "purpose": "Define which product/variant/build condition the requirement applies to.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-6-01",
+          "subcategory_id": "1.6",
+          "requirement": "Product/model/option applicability explicit",
+          "criteria": {
+            "L1": "Each requirement identifies the car line, model, option, variant, part family, or build condition to which it applies whenever more than one can reach the station.",
+            "L2": "The current build/variant is identifiable before the quality-critical decision.",
+            "L3": "Customer BOM/configuration/model-year/engineering release defines exact applicability."
+          },
+          "evidence_inputs": "SWI + broadcast/sequence/part identification + customer engineering",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "Process Sheet & SWI Standard",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-6-02",
+          "subcategory_id": "1.6",
+          "requirement": "Variant-specific requirements separated",
+          "criteria": {
+            "L1": "Different variants with different requirements are not represented by one generic value/instruction.",
+            "L2": "The station presents the correct active requirement for the current variant.",
+            "L3": "Customer-specific values/criteria are mapped to the exact variant/configuration."
+          },
+          "evidence_inputs": "SWI + station variant signal + engineering",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "F6 WO Organizing Workstation",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-6-03",
+          "subcategory_id": "1.6",
+          "requirement": "Mixed-model concurrent production addressed",
+          "criteria": {
+            "L1": "The SWI structure prevents a requirement for one model/model year from being mistaken for another when products are built concurrently.",
+            "L2": "The station information changes or clearly indicates which requirement applies to the current unit.",
+            "L3": "Customer/model-year VCP or equivalent defines differences in characteristics/specifications."
+          },
+          "evidence_inputs": "SWI + station sequence/build data + VCP",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "F6 WO Organizing Workstation",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-6-04",
+          "subcategory_id": "1.6",
+          "requirement": "Pilot / engineering-change / non-nominal applicability identified",
+          "criteria": {
+            "L1": "Temporary or special-build requirements are clearly distinguished from nominal production requirements.",
+            "L2": "Pilot/change parts and related requirements are visibly identifiable at the station.",
+            "L3": "Customer/engineering change documentation defines exact temporary applicability and effective point."
+          },
+          "evidence_inputs": "SWI/temporary instruction + labels + engineering change",
+          "primary_source": "LOG Packaging",
+          "supporting_source": "CX-F13 Quality Change Management",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-6-05",
+          "subcategory_id": "1.6",
+          "requirement": "Applicability trigger is deterministic",
+          "criteria": {
+            "L1": "The operator does not need to combine multiple pieces of information mentally to determine which requirement applies.",
+            "L2": "The station provides a direct link between build information and the applicable requirement/part.",
+            "L3": "Customer data/configuration is translated into an unambiguous station trigger."
+          },
+          "evidence_inputs": "SWI + station display + broadcast/configuration data",
+          "primary_source": "F6 WO Organizing Workstation",
+          "supporting_source": "RJA; Logistics",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.7",
+      "name": "Criticality / Classification / Regulatory Significance",
+      "purpose": "Define criticality, special status and mandatory significance.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-7-01",
+          "subcategory_id": "1.7",
+          "requirement": "Special/critical characteristic identified",
+          "criteria": {
+            "L1": "The SWI visibly identifies characteristics requiring elevated quality attention because of safety, regulatory, functional, customer, or other defined criticality.",
+            "L2": "The station presentation does not hide or contradict the critical designation.",
+            "L3": "Customer/engineering/PFMEA/Control Plan defines the authoritative critical/special classification."
+          },
+          "evidence_inputs": "SWI + station visuals + PFMEA/Control Plan/drawing",
+          "primary_source": "CX-F14 Risk Assessment",
+          "supporting_source": "Vehicle Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-7-02",
+          "subcategory_id": "1.7",
+          "requirement": "Classification carried consistently",
+          "criteria": {
+            "L1": "The SWI uses the approved classification symbol/name rather than inventing an independent local classification.",
+            "L2": "Station visuals/displays use the same classification convention.",
+            "L3": "Customer/regional engineering standard defines the exact classification system."
+          },
+          "evidence_inputs": "SWI + station visual + customer standard",
+          "primary_source": "Traceability PS-10125",
+          "supporting_source": "CX-F14 Risk Assessment",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-7-03",
+          "subcategory_id": "1.7",
+          "requirement": "Pass-through/hidden significance known",
+          "criteria": {
+            "L1": "Where a characteristic becomes difficult or impossible to verify later, the SWI identifies it as a quality-critical result requiring attention at this stage.",
+            "L2": "The station clearly identifies the feature before it becomes inaccessible.",
+            "L3": "Customer risk assessment/PFMEA defines pass-through or hidden-feature significance."
+          },
+          "evidence_inputs": "SWI + station/product state + PFMEA/risk assessment",
+          "primary_source": "CX-F14 Risk Assessment",
+          "supporting_source": "Reactive QA Network",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-7-04",
+          "subcategory_id": "1.7",
+          "requirement": "Mandatory/regulatory requirement distinguishable from discretionary controls",
+          "criteria": {
+            "L1": "The SWI clearly identifies mandatory requirements so they are not treated as optional/local checks.",
+            "L2": "The station does not present mandatory and discretionary requirements ambiguously.",
+            "L3": "Customer/regulatory documentation defines mandatory status."
+          },
+          "evidence_inputs": "SWI + station display + regulatory/customer standard",
+          "primary_source": "Traceability PS-10125",
+          "supporting_source": "CX-F04 Verification Check",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.8",
+      "name": "Source / Authority / Revision / Effective Point",
+      "purpose": "Define authoritative source, revision and effective point.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-8-01",
+          "subcategory_id": "1.8",
+          "requirement": "Approved source traceable",
+          "criteria": {
+            "L1": "Every technical quality requirement in the SWI is traceable to an approved upstream source or controlled standard.",
+            "L2": "Station copies/displays/settings can be linked to the same approved requirement source.",
+            "L3": "Drawing, engineering specification, process sheet, Control Plan, VCP, customer standard, etc. is the authoritative source."
+          },
+          "evidence_inputs": "SWI metadata/reference + station docs + source document",
+          "primary_source": "Process Sheet & SWI Standard",
+          "supporting_source": "Vehicle Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-8-02",
+          "subcategory_id": "1.8",
+          "requirement": "Current revision identified",
+          "criteria": {
+            "L1": "The SWI identifies its current controlled revision/version and does not rely on uncontrolled local copies.",
+            "L2": "Only the current approved requirement/reference is available at the station.",
+            "L3": "Customer/engineering revision status defines the authoritative current requirement."
+          },
+          "evidence_inputs": "SWI revision + station copy + engineering release",
+          "primary_source": "Process Sheet & SWI Standard",
+          "supporting_source": "MQGR79; LOG Material Handling",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-8-03",
+          "subcategory_id": "1.8",
+          "requirement": "Effective point/change timing known",
+          "criteria": {
+            "L1": "When a requirement changes, the standard identifies when the new requirement becomes effective for production.",
+            "L2": "The station can distinguish units/parts before and after the change point.",
+            "L3": "Customer/engineering change notice, breakpoint, model year, VIN/build event, or equivalent defines the exact effective point."
+          },
+          "evidence_inputs": "Change document + station build identification + SWI",
+          "primary_source": "CX-F13 Quality Change Management",
+          "supporting_source": "Vehicle Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-8-04",
+          "subcategory_id": "1.8",
+          "requirement": "Obsolete requirements removed",
+          "criteria": {
+            "L1": "Superseded values, images, samples, or instructions are removed or clearly invalidated so they cannot be used accidentally.",
+            "L2": "Obsolete station references are not available as competing instructions.",
+            "L3": "Customer document control defines supersession and validity."
+          },
+          "evidence_inputs": "SWI/document control + station audit + source revision",
+          "primary_source": "CX-F09 Control Plan",
+          "supporting_source": "Process Sheet & SWI Standard",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-8-05",
+          "subcategory_id": "1.8",
+          "requirement": "Controlled deviations explicitly authorized",
+          "criteria": {
+            "L1": "A known deviation from the released requirement is not silently embedded in the SWI; it is identified as an approved deviation with defined scope/effective period.",
+            "L2": "The station clearly identifies the approved non-nominal condition and does not treat it as normal standard.",
+            "L3": "Customer/engineering/quality authorization defines the exact deviation and limits."
+          },
+          "evidence_inputs": "Deviation approval + temporary instruction + station visual",
+          "primary_source": "Surface Appearance Standards",
+          "supporting_source": "LOG Packaging; CX-F11 Bypass Management",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.9",
+      "name": "Point-of-Use Clarity / Visual Communication",
+      "purpose": "Make the requirement usable at the point of work without interpretation.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-9-01",
+          "subcategory_id": "1.9",
+          "requirement": "Requirement available where needed",
+          "criteria": {
+            "L1": "The SWI or referenced requirement is readily accessible without special access or searching during the work cycle.",
+            "L2": "The information is available at the station at the moment the operator needs it.",
+            "L3": "Customer-specific controlled references are available when required."
+          },
+          "evidence_inputs": "SWI location + station video/image + reference access",
+          "primary_source": "5QFZD",
+          "supporting_source": "CX-F07 Standardize Workstation; F6 WO",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-9-02",
+          "subcategory_id": "1.9",
+          "requirement": "Requirement visible/readable from working position when needed",
+          "criteria": {
+            "L1": "Critical quality information is formatted so the intended user can read and interpret it quickly.",
+            "L2": "The information is visible from the actual work/inspection position when needed; it is not hidden, remote, or blocked.",
+            "L3": "Customer/plant-specific display requirements are incorporated where applicable."
+          },
+          "evidence_inputs": "SWI visual quality + station image/video",
+          "primary_source": "5QFZD",
+          "supporting_source": "F2 WO Making Nominal Visible",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-9-03",
+          "subcategory_id": "1.9",
+          "requirement": "One source of truth at point of use",
+          "criteria": {
+            "L1": "The operator is not required to reconcile several uncontrolled documents, boards, labels, or values to know the requirement.",
+            "L2": "The station presents a single authoritative requirement or a clearly controlled hierarchy.",
+            "L3": "Customer/engineering source hierarchy resolves which document/value governs."
+          },
+          "evidence_inputs": "SWI + station displays + document hierarchy",
+          "primary_source": "F6 WO Organizing Workstation",
+          "supporting_source": "RJA; CX-F09 Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-9-04",
+          "subcategory_id": "1.9",
+          "requirement": "No mental conversion or interpretation required",
+          "criteria": {
+            "L1": "The SWI avoids requiring the operator to calculate, convert, combine, decode, or infer the requirement during the cycle unless the calculation is itself standardized and error-proofed.",
+            "L2": "Station information is presented directly in the form needed for the decision.",
+            "L3": "Customer data is translated into the correct direct station requirement."
+          },
+          "evidence_inputs": "SWI + station display + customer data",
+          "primary_source": "F6 WO Organizing Workstation",
+          "supporting_source": "RJA; Yamashina QC",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-9-05",
+          "subcategory_id": "1.9",
+          "requirement": "Visuals identify quality key points",
+          "criteria": {
+            "L1": "When a requirement is easier or safer to understand visually, the SWI uses graphics/photos/symbols to make the characteristic and acceptance point unmistakable.",
+            "L2": "The station visual matches the real product orientation/feature.",
+            "L3": "Customer/product-specific imagery or symbols are used where necessary."
+          },
+          "evidence_inputs": "SWI visuals + station/product image",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "F2 WO; 5QFZD",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.10",
+      "name": "Requirement Completeness / Flow-Down",
+      "purpose": "Ensure all required quality information flows into the station standard.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-10-01",
+          "subcategory_id": "1.10",
+          "requirement": "All operator-needed quality requirements included",
+          "criteria": {
+            "L1": "The SWI contains or directly references every quality-result requirement the operator must know to perform the job correctly; tribal knowledge is not an acceptable source.",
+            "L2": "No additional quality requirement is necessary at the station that is absent from the controlled standard.",
+            "L3": "Customer/engineering/PFMEA/Control Plan sources are used to expose omitted requirements."
+          },
+          "evidence_inputs": "SWI + station evidence + upstream quality documents",
+          "primary_source": "Process Sheet & SWI Standard",
+          "supporting_source": "Vehicle Control Plan; CX-F09 Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-10-02",
+          "subcategory_id": "1.10",
+          "requirement": "Upstream engineering requirements flowed to station standard",
+          "criteria": {
+            "L1": "Relevant requirements from released product/process engineering documentation are carried into the station SWI.",
+            "L2": "The station uses those same flowed-down requirements.",
+            "L3": "Customer/engineering source defines the complete requirement set."
+          },
+          "evidence_inputs": "Engineering/process sheet + SWI + station",
+          "primary_source": "Process Sheet & SWI Standard",
+          "supporting_source": "Vehicle Control Plan",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-10-03",
+          "subcategory_id": "1.10",
+          "requirement": "Control Plan/PFMEA-required characteristics represented",
+          "criteria": {
+            "L1": "If the risk/control system identifies a characteristic as requiring operator awareness at this station, the SWI reflects that requirement.",
+            "L2": "The station information aligns to the same characteristic.",
+            "L3": "Customer PFMEA/Control Plan/QA Matrix determines the exact characteristic and criticality."
+          },
+          "evidence_inputs": "PFMEA/Control Plan + SWI + station",
+          "primary_source": "CX-F09 Control Plan",
+          "supporting_source": "CX-F14 Risk Assessment",
+          "notes": "The control method itself is judged under later Cores."
+        },
+        {
+          "benchmark_id": "Q01-10-04",
+          "subcategory_id": "1.10",
+          "requirement": "Known customer/field defects update requirement definition where necessary",
+          "criteria": {
+            "L1": "When a defect reveals that the existing definition of good was incomplete or ambiguous, the SWI is updated to include the clarified requirement.",
+            "L2": "The station reference is updated consistently.",
+            "L3": "Customer/warranty/audit feedback and approved engineering disposition define the added/clarified requirement."
+          },
+          "evidence_inputs": "Customer defect history + revised SWI + station",
+          "primary_source": "CX-F01 Customer Obeya / CX-F02 Short Loop",
+          "supporting_source": "CX-F06 Overlook",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-10-05",
+          "subcategory_id": "1.10",
+          "requirement": "Supplier/material quality requirements visible where they affect station acceptance",
+          "criteria": {
+            "L1": "Where material identity/condition is part of the station's required result, the SWI states the applicable requirement rather than assuming correct material.",
+            "L2": "Labels/packaging/part identification needed to recognize the requirement are available and legible.",
+            "L3": "Customer/supplier/engineering standards define exact material/identification requirements."
+          },
+          "evidence_inputs": "SWI + material labels/packaging + supplier/customer standards",
+          "primary_source": "LOG Packaging",
+          "supporting_source": "8 Stages Incoming Material; Material Handling",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.11",
+      "name": "Requirement Consistency / Conflict / Exception",
+      "purpose": "Prevent conflicting or uncontrolled requirements.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-11-01",
+          "subcategory_id": "1.11",
+          "requirement": "No conflicting requirements within SWI",
+          "criteria": {
+            "L1": "The same characteristic is not assigned multiple conflicting values, criteria, images, or statements within the controlled work instruction.",
+            "L2": "Station displays, labels, tool references, masters, and SWI do not contradict one another.",
+            "L3": "Customer/engineering source resolves the authoritative requirement."
+          },
+          "evidence_inputs": "SWI + station references + customer source",
+          "primary_source": "CX-F09 Control Plan",
+          "supporting_source": "Process Sheet & SWI Standard",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-11-02",
+          "subcategory_id": "1.11",
+          "requirement": "Cross-document requirement consistency",
+          "criteria": {
+            "L1": "The SWI value/criterion agrees with the approved upstream process sheet/control documentation unless an approved deviation exists.",
+            "L2": "Station information/settings agree with the same requirement.",
+            "L3": "Customer/engineering documents are the final authority when conflict exists."
+          },
+          "evidence_inputs": "SWI + process sheet + control plan + station + engineering",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "Process Sheet & SWI Standard",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-11-03",
+          "subcategory_id": "1.11",
+          "requirement": "Conflict is surfaced, not averaged or guessed",
+          "criteria": {
+            "L1": "If sources disagree, the SWI is not treated as robust merely because it is internally clear; the discrepancy is flagged for resolution.",
+            "L2": "The station does not continue using an unresolved ambiguous requirement as if it were approved.",
+            "L3": "Customer/engineering authority determines the correct requirement."
+          },
+          "evidence_inputs": "Cross-document comparison",
+          "primary_source": "Vehicle Control Plan",
+          "supporting_source": "CX-F09 Control Plan",
+          "notes": "This is a core SWP logic rule."
+        },
+        {
+          "benchmark_id": "Q01-11-04",
+          "subcategory_id": "1.11",
+          "requirement": "Exception/non-nominal requirement clearly bounded",
+          "criteria": {
+            "L1": "Temporary, alternate, pilot, or exception requirements identify scope, duration/effective point, and what nominal requirement they supersede.",
+            "L2": "The station visibly distinguishes non-nominal conditions from normal standard.",
+            "L3": "Customer/engineering/quality approval defines exact exception boundaries."
+          },
+          "evidence_inputs": "Temporary instruction + approval + station visual",
+          "primary_source": "LOG Packaging",
+          "supporting_source": "CX-F13 Quality Change Management; CX-F11 Bypass Management",
+          "notes": null
+        }
+      ]
+    },
+    {
+      "id": "1.12",
+      "name": "Identification / Traceability Requirement",
+      "purpose": "Define mandatory identification/traceability quality requirements.",
+      "checks": [
+        {
+          "benchmark_id": "Q01-12-01",
+          "subcategory_id": "1.12",
+          "requirement": "Traceability applicability known",
+          "criteria": {
+            "L1": "Where product/component traceability is mandatory or quality-required, the SWI identifies that traceability is required for the operation/product.",
+            "L2": "The station identifies which component/unit requires traceability before release.",
+            "L3": "Customer/regulatory/engineering standard defines the exact component/market/model applicability."
+          },
+          "evidence_inputs": "SWI + station identification + traceability standard",
+          "primary_source": "Traceability PS-10125",
+          "supporting_source": "FGA Single Part Traceability",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-12-02",
+          "subcategory_id": "1.12",
+          "requirement": "Required traceability data known",
+          "criteria": {
+            "L1": "The SWI identifies the required data capture/identification outcome sufficiently for the operator to know what constitutes a complete traceability result.",
+            "L2": "The station displays/captures the required identifiers in a recognizable way.",
+            "L3": "Customer/engineering standard defines exact required fields, format, label/data-matrix content, VIN association, etc."
+          },
+          "evidence_inputs": "SWI + scanner/display + traceability spec",
+          "primary_source": "Traceability PS-10125",
+          "supporting_source": "FGA Single Part Traceability",
+          "notes": "Exact barcode structure is Customer Specific, not universal L1/L2."
+        },
+        {
+          "benchmark_id": "Q01-12-03",
+          "subcategory_id": "1.12",
+          "requirement": "Traceability good/bad condition known",
+          "criteria": {
+            "L1": "The SWI distinguishes a valid traceability result from missing, unreadable, duplicate, damaged, or otherwise nonconforming identification when relevant.",
+            "L2": "The station provides a clear status/result that enables the decision.",
+            "L3": "Customer traceability standard defines exact nonconformance and recovery requirements."
+          },
+          "evidence_inputs": "SWI + station status + traceability standard",
+          "primary_source": "Traceability PS-10125",
+          "supporting_source": "MQGR / customer procedure",
+          "notes": null
+        },
+        {
+          "benchmark_id": "Q01-12-04",
+          "subcategory_id": "1.12",
+          "requirement": "Reprocess/change traceability requirement known",
+          "criteria": {
+            "L1": "Where reprocessing or component replacement changes the traceability requirement, the SWI identifies the need to re-establish the required traceability condition.",
+            "L2": "The station/rework process can recognize that traceability must be repeated or updated.",
+            "L3": "Customer traceability standard defines exact re-scan/reassociation requirements."
+          },
+          "evidence_inputs": "Rework SWI + station system + traceability standard",
+          "primary_source": "Traceability PS-10125",
+          "supporting_source": "CX-F13 Quality Change Management",
+          "notes": null
+        }
+      ]
+    }
+  ],
+  "version": "1.0"
+}
