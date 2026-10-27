@@ -1,0 +1,29 @@
+{
+  "source": { "filename": "badge_application.pdf", "format": "structured", "pages": 2 },
+  "meta": {
+    "title": "Badge application", "swi_id": "PLX-1955-07", "revision": "7", "effective_date": "2026-08-01",
+    "owner": "Process Engineering", "plant": "Chicago", "line": "Trim 1", "station": "1955L",
+    "products": ["Model A", "Model B"]
+  },
+  "work_elements": [
+    { "id": "we-1", "seq": 1, "title": "Verify badge / model / finish",
+      "steps": [ { "text": "Check broadcast sheet and confirm badge part number matches model and finish." } ] },
+    { "id": "we-2", "seq": 2, "title": "Prepare surface + load fixture",
+      "steps": [ { "text": "Verify part and load badge into fixture." } ],
+      "asset_ids": ["img-2"] },
+    { "id": "we-3", "seq": 3, "title": "Locate fixture to datum",
+      "steps": [ { "text": "Locate fixture pins into datum holes A and B." } ] },
+    { "id": "we-4", "seq": 4, "title": "Apply badge pressure",
+      "steps": [ { "text": "Apply badge with specified force, minimum hold 5 s." } ],
+      "specs": [
+        { "characteristic": "application force", "value": "specified force", "direction": "unknown" },
+        { "characteristic": "hold time", "value": "5", "unit": "s", "direction": "min" }
+      ] },
+    { "id": "we-5", "seq": 5, "title": "Final verification",
+      "steps": [ { "text": "Check position, level, spacing, adhesion and appearance.", "kind": "check" } ] }
+  ],
+  "assets": [
+    { "id": "img-2", "kind": "image", "page": 1, "description": "Operator wiping badge area with cloth", "text_in_image": "WIPE CLEAN" }
+  ],
+  "global": { "ppe": ["Gloves"], "tools": ["Badge fixture"] }
+}
