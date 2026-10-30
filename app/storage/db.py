@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, create_engine
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 
 from app.config import get_settings
@@ -92,6 +92,27 @@ class Job(Base):
     result: Mapped[dict | None] = mapped_column(JSON)  # inline result for stateless black-box calls
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+
+class User(Base):
+    """Login accounts. Seeded with `python -m app.auth.seed`; there is no self sign-up."""
+    __tablename__ = "users"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)  # stored lower-case
+    name: Mapped[str | None] = mapped_column(String(200))
+    password_hash: Mapped[str] = mapped_column(String(200))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class UserSession(Base):
+    """Login sessions. `id` is sha256 of the cookie token, so a leaked table can't be replayed."""
+    __tablename__ = "user_sessions"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    user: Mapped[User] = relationship()
 
 
 @lru_cache

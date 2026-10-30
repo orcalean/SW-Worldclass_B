@@ -10,7 +10,7 @@ flowchart LR
     UP[Upload / Re-upload] --> RV[Review extraction] --> AU[Audit]
   end
   subgraph BE[backend · FastAPI /v1]
-    API[routes.py] --> SVC[services.py]
+    API[api/v1/*] --> SVC[services.py]
     SVC --> A[A · ingestion]
     SVC --> B[B · evaluation]
     B --> C[C · scoring]
@@ -25,7 +25,7 @@ flowchart LR
 ```
 
 - Frontend repo: `src/main.tsx` (routes), `src/pages/*`, typed client `src/api/client.ts`.
-- Backend: `app/main.py` (app), `app/api/v1/routes.py` (all endpoints), `app/services.py` (orchestration + caching), modules A/B/C, `app/jobs/runner.py` (async jobs).
+- Backend: `app/main.py` (app), `app/api/v1/` (endpoints: one module per area, combined in `routes.py`), `app/services.py` (orchestration + caching), modules A/B/C, `app/jobs/runner.py` (async jobs).
 
 ## Main flow (UI)
 

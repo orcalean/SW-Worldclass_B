@@ -13,6 +13,7 @@ def offline_env(tmp_path, monkeypatch):
     monkeypatch.setenv("SWC_DATABASE_URL", f"sqlite:///{tmp_path / 'swc.db'}")
     monkeypatch.setenv("DIRECT_URL", "")
     monkeypatch.setenv("SWC_API_KEYS", "")
+    monkeypatch.setenv("SWC_AUTH_REQUIRED", "false")  # tests/unit/test_auth.py turns it back on
     config.get_settings.cache_clear()
     db._sessionmaker.cache_clear()
     yield tmp_path

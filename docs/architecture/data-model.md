@@ -14,6 +14,9 @@ erDiagram
   EVIDENCE { string id PK; string revision_id FK; json item; datetime created_at }
   ASSESSMENT { string id PK; string revision_id FK "nullable"; string cache_key; float score; string status; json result; datetime created_at }
   EXTRACTION_CACHE { string key PK; json document; float cost_usd }
+  USER ||--o{ USER_SESSION : has
+  USER { string id PK; string email UK; string name; string password_hash; bool is_active; datetime created_at }
+  USER_SESSION { string id PK "sha256(token)"; string user_id FK; datetime created_at; datetime expires_at }
   JOB { string id PK; string kind; string status; string stage; text error; string result_type; string result_id; json result; datetime created_at; datetime updated_at }
 ```
 
@@ -24,6 +27,8 @@ erDiagram
 | `Evidence` | `evidence` | `item` = `EvidenceItem` JSON (level L2/L3). |
 | `Assessment` | `assessments` | `result` = `EvaluationResult` JSON. `revision_id` is null for stateless `/v1/evaluate` calls. `cache_key` = `engine.cache_key(...)`; a cache hit for another revision creates a new row with the same result. |
 | `ExtractionCache` | `extraction_cache` | key = sha256(file sha + `EXTRACT_PROMPT_VERSION` + provider + model). |
+| `User` | `users` | Login accounts (ADR 0009), seeded via `python -m app.auth.seed`. Email unique, lower-case; scrypt `password_hash`; `is_active=false` blocks login. |
+| `UserSession` | `user_sessions` | One per login; `id` = sha256 of the `swc_session` cookie token; fixed `expires_at`. Deleted on logout / password reset / deactivation. |
 | `Job` | `jobs` | `status`: queued / running / succeeded / failed. `result` holds inline output for black-box calls. Running jobs are marked failed on restart (`runner.recover_interrupted`). |
 
 ## Blobs

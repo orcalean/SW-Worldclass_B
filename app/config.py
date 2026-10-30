@@ -35,7 +35,12 @@ class Settings(BaseSettings):
     # DATABASE_URL = pooled connection the app uses; DIRECT_URL = direct/session connection for migrations.
     pooled_database_url: str = Field("", validation_alias="DATABASE_URL")
     direct_database_url: str = Field("", validation_alias="DIRECT_URL")
-    api_keys: str = ""  # comma-separated; empty disables auth (local dev)
+    api_keys: str = ""  # comma-separated X-API-Key values for service callers
+    # Login (ADR 0009). True: every /v1 route needs a session cookie or a valid X-API-Key.
+    # False (local dev only): open unless api_keys is set, as before login existed.
+    auth_required: bool = True
+    session_days: int = 7
+    cookie_secure: bool = False  # set true when served over HTTPS
     cors_origins: str = "http://localhost:5173"
 
     def db_url(self) -> str:

@@ -12,6 +12,7 @@ One file per decision confirmed with the owner. Don't reverse an accepted ADR wi
 | [0006](0006-l1-headline-score.md) | Headline score is L1; L2/L3 shown as evidence completeness and only hold the gate | Accepted | 2026-10-24 |
 | [0007](0007-scoring-policy-defaults.md) | Scoring policy defaults (points, weights, blocking checks, N/A rule) | Accepted | 2026-10-24 |
 | [0008](0008-supabase-postgres-with-alembic.md) | Supabase Postgres for the database; Alembic for migrations | Accepted | 2026-10-27 |
+| [0009](0009-user-login-with-fastapi-sessions.md) | User login: FastAPI sessions in an HttpOnly cookie; seeded users | Accepted | 2026-10-27 |
 
 ## Template
 

@@ -18,7 +18,7 @@
 
 `EvaluationResult` shape: `engine` (versions, models), `overall` (L1 score, benchmark, status, reason, evidence completeness per level), `gate` (passed | blocked | evidence_required, blocking ids, reasons), `dimensions[]` → `cores[]` → `subcategories[]` → `checks[]` (verdict, rationale, quotes with `verified`, confidence, work element ids, root_of, blocking, suggested_fix), `work_elements[]` overlay, `improvements[]`, `usage` (calls, tokens, cost, cached).
 
-## API surface (`app/api/v1/routes.py`)
+## API surface (`app/api/v1/`: one router module per area, combined in `routes.py`)
 | Method | Path | Kind |
 |---|---|---|
 | GET | `/v1/health`, `/v1/rubrics`, `/v1/rubrics/{core_id}` | black-box |

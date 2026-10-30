@@ -34,7 +34,16 @@ SOP benchmark audit API (SWP Step 2 · SWI · SQDCME). Takes any SOP, extracts i
 app/
   main.py               FastAPI app, CORS, lifespan (marks interrupted jobs failed)
   config.py             Settings from env + .env (prefix SWC_; ANTHROPIC_API_KEY unprefixed)
-  api/v1/routes.py      every endpoint + request/response models
+  api/v1/routes.py      combines the v1 routers below into one `router` (main.py includes it); adds require_auth
+  api/v1/auth.py        /v1/auth/login, logout, me (public)
+  api/v1/health.py      /v1/health
+  api/v1/rubrics.py     /v1/rubrics[/{id}]
+  api/v1/jobs.py        /v1/ingest, /v1/evaluate, /v1/jobs/{id} (black-box)
+  api/v1/sops.py        /v1/sops/... revisions, document review, evidence, assess (workspace)
+  api/v1/assessments.py /v1/assessments/{id}, /v1/blobs/{sha}/{name}
+  api/v1/common.py      shared: JobRef/JobOut, read_upload (size/type checks)
+  auth/__init__.py      password hashing, DB sessions, require_auth (cookie or X-API-Key)
+  auth/seed.py          CLI to add / reset / list / deactivate users
   services.py           orchestration: providers, extraction/result caches, persistence
   contracts/            public contracts: sop.py, evidence.py, evaluation.py, rubric.py
   ingestion/            A · loaders.py (file → pages), structurer.py (pages → SOPDocument), offline.py
@@ -47,7 +56,7 @@ app/
   jobs/runner.py        in-process async jobs backed by the jobs table
 migrations/             Alembic env.py + versions/ (schema history)
 rubrics/                dimensions.json, policy@1.0.json, quality/core1@1.0.json, source/*.xlsx
-tests/unit/             test_rubric, test_scorer, test_evaluation, test_ingestion, test_api
+tests/unit/             test_rubric, test_scorer, test_evaluation, test_ingestion, test_api, test_auth
 tests/fixtures/         badge_sop.json
 docs/                   architecture/, design/, features/, decisions/, progress/
 ```
@@ -56,16 +65,17 @@ docs/                   architecture/, design/, features/, decisions/, progress/
 ```bash
 uv sync
 uv run uvicorn app.main:app --port 8000     # reads .env; SWC_LLM_PROVIDER=offline for a no-key demo
-uv run pytest                                # 29 tests; always on a temp SQLite file, never the .env database
+uv run pytest                                # 34 tests; always on a temp SQLite file, never the .env database
 uv run alembic revision --autogenerate -m "x" # after changing models in app/storage/db.py; review + commit the file
 uv run alembic upgrade head                  # apply migrations (the app also does this on first connect)
+uv run python -m app.auth.seed you@x.com --name "You"   # add / reset a login user (prompts for password)
 uv run python -m app.rubric.importer rubrics/source/<file>.xlsx rubrics/quality/core1@1.0.json --dimension Q --core 1 --version 1.0
 # from the parent folder: docker compose up --build   → API + UI together (rebuild after dependency or migration changes)
 ```
 
 ## Adding an endpoint
-1. Add request/response models near the top of `app/api/v1/routes.py` (or reuse a contract from `app/contracts/`).
-2. Add the handler to `router`. Keep it thin: validate, call `services.*` or a module, map to the response model. Auth comes from the router dependency `require_key`.
+1. Pick the module in `app/api/v1/` for that area (or add one with its own `router = APIRouter(...)` and list it in `routes.py`). Put request/response models at the top of that module (or reuse a contract from `app/contracts/`).
+2. Add the handler to that module's `router`. Keep it thin: validate, call `services.*` or a module, map to the response model. Auth comes from the router dependency `require_auth` (session cookie or `X-API-Key`).
 3. Anything that calls an LLM or takes seconds runs as a job: `runner.submit(kind, work)` where `work(stage)` returns `(result_type, result_id, inline_result)`; respond `202` with the job id (see the `ingest` / `evaluate` handlers).
 4. DB: `with db.session() as ses: ...; ses.commit()`. New tables/columns go in `app/storage/db.py`, then `uv run alembic revision --autogenerate` (review the file; it ships with the change).
 5. Test in `tests/unit/test_api.py` with the `client` fixture (offline provider, temp data dir); `await wait(client, job_id)` for jobs.
@@ -90,7 +100,10 @@ uv run python -m app.rubric.importer rubrics/source/<file>.xlsx rubrics/quality/
 | `DATABASE_URL` | – | Supabase transaction pooler (:6543), used by the app |
 | `DIRECT_URL` | – | Supabase session/direct (:5432), used by migrations |
 | `SWC_DATABASE_URL` | – | overrides `DATABASE_URL` (tests); none set = SQLite in data dir |
-| `SWC_API_KEYS` | empty (auth off) | comma-separated keys for `X-API-Key` |
+| `SWC_API_KEYS` | empty | comma-separated keys for `X-API-Key` (service callers) |
+| `SWC_AUTH_REQUIRED` | true | login required on `/v1`; false = open unless `SWC_API_KEYS` set (local dev) |
+| `SWC_SESSION_DAYS` | 7 | login session lifetime |
+| `SWC_COOKIE_SECURE` | false | set true behind HTTPS |
 | `SWC_CORS_ORIGINS` | `http://localhost:5173` | comma-separated |
 
 ## Gotchas
@@ -100,7 +113,8 @@ uv run python -m app.rubric.importer rubrics/source/<file>.xlsx rubrics/quality/
 - The API rejects `temperature`; Sonnet 5.5 rejects forced `tool_choice`. Use `beta.messages.stream(output_format=...)` + `get_final_message()` (non-streaming calls with large `max_tokens` are refused by the SDK).
 - Header metadata is indexed as `field: value` for quote verification (`SOPDocument.all_text`).
 - Without LibreOffice, DOCX/PPTX/XLSX fall back to native extraction (no page renders).
-- `/v1/blobs` is behind the API key, which breaks `<img>` tags in the UI when keys are enabled.
+- Tests run with `SWC_AUTH_REQUIRED=false` (conftest); `test_auth.py` turns login on for its own client.
+- With login on, the local UI needs a seeded user (`python -m app.auth.seed`), or set `SWC_AUTH_REQUIRED=false` in `.env`.
 
 ## How to verify
 - Any change: `uv run pytest` passes.

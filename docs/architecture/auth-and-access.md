@@ -1,16 +1,36 @@
 # Auth and access
 
-## Current state
-- **No user login, no roles, no tenants.** The UI's "Signed in · Quality / Process" label is static text from the design (frontend repo `src/components/Shell.tsx`).
-- **API key (optional):** if `SWC_API_KEYS` (comma-separated) is set in `.env`, every `/v1` route requires header `X-API-Key` with one of the keys. Implemented by the router dependency `require_key` in `app/api/v1/routes.py`. Empty = auth off (local dev).
-- The frontend sends `X-API-Key` from `VITE_API_KEY` (frontend repo `src/api/client.ts`) on `fetch` calls only.
-- CORS origins: `SWC_CORS_ORIGINS` (default `http://localhost:5173`), in `app/main.py`.
+User login per ADR 0009. Code: `app/auth/__init__.py` (hashing, sessions, `require_auth`), `app/auth/seed.py` (user CLI), `app/api/v1/auth.py` (endpoints).
+
+## How a request is authorised
+Every `/v1` route except `/v1/auth/*` has the router dependency `require_auth`, which allows the request if **any** of:
+1. `X-API-Key` matches one of `SWC_API_KEYS` (service-to-service, e.g. SWP → this API);
+2. the `swc_session` cookie maps to an unexpired session of an active user;
+3. login is off: `SWC_AUTH_REQUIRED=false` **and** `SWC_API_KEYS` empty (local dev only).
+
+Otherwise `401`.
+
+## Login flow
+- `POST /v1/auth/login {email, password}` → checks the scrypt hash (email is trimmed + lower-cased; unknown emails still cost one hash so timing doesn't reveal them) → creates a `user_sessions` row → sets cookie `swc_session` (HttpOnly, SameSite=Lax, `Secure` when `SWC_COOKIE_SECURE=true`, max-age `SWC_SESSION_DAYS`). The DB stores only sha256(token).
+- `GET /v1/auth/me` → `{user | null, auth_required}`. The UI calls it on every page load, so a refresh keeps the user signed in.
+- `POST /v1/auth/logout` → deletes the session row and the cookie.
+- Sessions have a fixed expiry (no sliding renewal). Expired rows for a user are cleaned up at their next login.
+
+## Managing users (no sign-up page)
+```bash
+uv run python -m app.auth.seed alice@plant.com --name "Alice"      # add or reset password (prompts)
+uv run python -m app.auth.seed alice@plant.com --password '...'     # non-interactive
+uv run python -m app.auth.seed --file users.json                   # [{"email","name","password"}, ...]
+uv run python -m app.auth.seed --list
+uv run python -m app.auth.seed alice@plant.com --deactivate
+```
+Uses the database from `.env`. Passwords ≥ 8 chars. A reset or deactivation ends all of that user's sessions. In Docker: `docker compose exec api uv run --no-dev python -m app.auth.seed ...`.
+
+## Deploying
+- Set `SWC_COOKIE_SECURE=true` behind HTTPS.
+- Serve the UI and `/v1` from the same site (reverse proxy) so the cookie is sent; CORS has `allow_credentials` for a cross-origin but same-site UI (`SWC_CORS_ORIGINS` must list it).
 
 ## Known gaps
-- `VITE_API_KEY` is compiled into the JS bundle, so it is readable by anyone using the UI.
-- `<img>` tags cannot send the header, so images from `/v1/blobs` fail when keys are enabled.
-- All data is visible to every caller with a valid key; no per-customer isolation.
-
-## Rules until real auth exists
-- Treat the API key as a service-to-service credential (e.g. SWP → this API), not a user credential.
-- Any login, role or tenant design is an owner decision: ask, then record an ADR.
+- No rate limiting / lockout on login.
+- No roles or tenants: every signed-in user sees all data.
+- No self-service password change (admin resets via the CLI).
