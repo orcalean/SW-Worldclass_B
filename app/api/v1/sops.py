@@ -6,20 +6,28 @@
   POST     /v1/sops/{id}/revisions/{n}/evidence             add L2/L3 evidence
   DELETE   /v1/sops/{id}/revisions/{n}/evidence/{eid}
   POST     /v1/sops/{id}/revisions/{n}/assess               job -> assessment
+
+Access (ADR 0010): a signed-in user only sees SOPs they uploaded; anything else is 404. X-API-Key callers and
+login-off dev see every SOP.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from app import services
 from app.api.v1.common import read_upload
+from app.auth import current_user
 from app.contracts.evidence import EvidenceItem
 from app.contracts.sop import SOPDocument
 from app.jobs import runner
 from app.storage import db
 
 router = APIRouter(prefix="/sops", tags=["sops"])
+
+Me = Annotated[db.User | None, Depends(current_user)]
 
 
 # ---------- schemas ----------
@@ -76,7 +84,20 @@ def _sop_out(s: db.SOP) -> SOPOut:
                   revisions=[_revision_out(r) for r in s.revisions])
 
 
-def _get_revision(ses, sop_id: str, number: int) -> db.Revision:
+def visible(user: db.User | None, sop: db.SOP | None) -> bool:
+    """Signed-in users see their own SOPs; API-key callers and login-off dev see all."""
+    return sop is not None and (user is None or sop.owner_id == user.id)
+
+
+def _get_sop(ses, sop_id: str, user: db.User | None) -> db.SOP:
+    s = ses.get(db.SOP, sop_id)
+    if not visible(user, s):
+        raise HTTPException(404, "SOP not found")
+    return s
+
+
+def _get_revision(ses, sop_id: str, number: int, user: db.User | None) -> db.Revision:
+    _get_sop(ses, sop_id, user)
     r = ses.query(db.Revision).filter_by(sop_id=sop_id, number=number).first()
     if not r:
         raise HTTPException(404, "revision not found")
@@ -93,22 +114,23 @@ def _set_rev(rev_id: str, **fields) -> None:
 
 # ---------- endpoints ----------
 @router.get("", response_model=list[SOPOut])
-def list_sops() -> list[SOPOut]:
+def list_sops(user: Me) -> list[SOPOut]:
     with db.session() as ses:
-        return [_sop_out(s) for s in ses.query(db.SOP).order_by(db.SOP.created_at.desc()).all()]
+        q = ses.query(db.SOP)
+        if user is not None:
+            q = q.filter(db.SOP.owner_id == user.id)
+        return [_sop_out(s) for s in q.order_by(db.SOP.created_at.desc()).all()]
 
 
 @router.get("/{sop_id}", response_model=SOPOut)
-def get_sop(sop_id: str) -> SOPOut:
+def get_sop(sop_id: str, user: Me) -> SOPOut:
     with db.session() as ses:
-        s = ses.get(db.SOP, sop_id)
-        if not s:
-            raise HTTPException(404, "SOP not found")
-        return _sop_out(s)
+        return _sop_out(_get_sop(ses, sop_id, user))
 
 
 @router.post("", response_model=UploadOut, status_code=202)
 async def upload_sop(
+    user: Me,
     file: UploadFile = File(...),
     sop_id: str | None = Form(None, description="Existing SOP id to add a new revision (re-upload)"),
     name: str | None = Form(None), plant: str | None = Form(None), line: str | None = Form(None),
@@ -118,11 +140,10 @@ async def upload_sop(
     fname = file.filename or "upload"
     with db.session() as ses:
         if sop_id:
-            sop = ses.get(db.SOP, sop_id)
-            if not sop:
-                raise HTTPException(404, "SOP not found")
+            sop = _get_sop(ses, sop_id, user)
         else:
-            sop = db.SOP(name=name or fname.rsplit(".", 1)[0], plant=plant, line=line, station=station)
+            sop = db.SOP(name=name or fname.rsplit(".", 1)[0], plant=plant, line=line, station=station,
+                         owner_id=user.id if user else None)
             ses.add(sop)
             ses.flush()
         number = (max((r.number for r in sop.revisions), default=0)) + 1
@@ -146,19 +167,19 @@ async def upload_sop(
 
 
 @router.get("/{sop_id}/revisions/{number}/document", response_model=SOPDocument)
-def get_document(sop_id: str, number: int) -> SOPDocument:
+def get_document(sop_id: str, number: int, user: Me) -> SOPDocument:
     with db.session() as ses:
-        r = _get_revision(ses, sop_id, number)
+        r = _get_revision(ses, sop_id, number, user)
         if not r.document:
             raise HTTPException(409, f"revision is {r.status}; no document yet")
         return SOPDocument.model_validate(r.document)
 
 
 @router.put("/{sop_id}/revisions/{number}/document", response_model=SOPDocument)
-def put_document(sop_id: str, number: int, doc: SOPDocument) -> SOPDocument:
+def put_document(sop_id: str, number: int, doc: SOPDocument, user: Me) -> SOPDocument:
     """Human-reviewed extraction replaces the machine one; scoring uses this version."""
     with db.session() as ses:
-        r = _get_revision(ses, sop_id, number)
+        r = _get_revision(ses, sop_id, number, user)
         if r.status in ("ingesting", "failed"):
             raise HTTPException(409, f"revision is {r.status}")
         for i, we in enumerate(sorted(doc.work_elements, key=lambda w: w.seq), start=1):
@@ -170,12 +191,12 @@ def put_document(sop_id: str, number: int, doc: SOPDocument) -> SOPDocument:
 
 
 @router.post("/{sop_id}/revisions/{number}/evidence", response_model=EvidenceItem, status_code=201)
-async def add_evidence(sop_id: str, number: int, file: UploadFile = File(...),
+async def add_evidence(sop_id: str, number: int, user: Me, file: UploadFile = File(...),
                        level: str = Form(..., pattern="^L[23]$"), kind: str = Form("document"),
                        title: str | None = Form(None)) -> EvidenceItem:
     data = await read_upload(file)
     with db.session() as ses:
-        rev_id = _get_revision(ses, sop_id, number).id
+        rev_id = _get_revision(ses, sop_id, number, user).id
     item = await services.evidence_from_bytes(file.filename or "evidence", data, level, kind, title)
     with db.session() as ses:
         ses.add(db.Evidence(revision_id=rev_id, item=item.model_dump(mode="json")))
@@ -184,9 +205,9 @@ async def add_evidence(sop_id: str, number: int, file: UploadFile = File(...),
 
 
 @router.delete("/{sop_id}/revisions/{number}/evidence/{evidence_id}", status_code=204)
-def delete_evidence(sop_id: str, number: int, evidence_id: str) -> None:
+def delete_evidence(sop_id: str, number: int, evidence_id: str, user: Me) -> None:
     with db.session() as ses:
-        rev = _get_revision(ses, sop_id, number)
+        rev = _get_revision(ses, sop_id, number, user)
         for e in rev.evidence:
             if e.item.get("id") == evidence_id:
                 ses.delete(e)
@@ -194,9 +215,9 @@ def delete_evidence(sop_id: str, number: int, evidence_id: str) -> None:
 
 
 @router.post("/{sop_id}/revisions/{number}/assess", response_model=AssessOut, status_code=202)
-async def assess_revision(sop_id: str, number: int) -> AssessOut:
+async def assess_revision(sop_id: str, number: int, user: Me) -> AssessOut:
     with db.session() as ses:
-        r = _get_revision(ses, sop_id, number)
+        r = _get_revision(ses, sop_id, number, user)
         if not r.document:
             raise HTTPException(409, f"revision is {r.status}; nothing to assess")
         doc = SOPDocument.model_validate(r.document)

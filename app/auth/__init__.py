@@ -107,6 +107,11 @@ def login_required() -> bool:
     return get_settings().auth_required or bool(_api_keys())
 
 
+def current_user(request: Request) -> db.User | None:
+    """The signed-in user for this request, or None (X-API-Key caller, or login off). Used to scope SOP access."""
+    return user_for_token(request.cookies.get(COOKIE))
+
+
 def require_auth(request: Request, x_api_key: Annotated[str | None, Header()] = None) -> None:
     """Router dependency for every /v1 route except /v1/auth/*."""
     keys = _api_keys()

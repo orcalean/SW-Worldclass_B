@@ -10,6 +10,12 @@ Every `/v1` route except `/v1/auth/*` has the router dependency `require_auth`, 
 
 Otherwise `401`.
 
+## What each caller can see (ADR 0010)
+- **Signed-in user (session cookie):** only SOPs they uploaded (`sops.owner_id`). `GET /v1/sops` is filtered; any other SOP id, its revisions, document, evidence, assess and its assessments return `404`. `app/auth.current_user` + `visible()` / `_get_sop()` in `app/api/v1/sops.py`.
+- **`X-API-Key` caller or login off:** all SOPs; uploads get no owner.
+- **SOPs with no owner** (uploaded before ADR 0010 or via API key) are invisible to users until claimed: `python -m app.auth.seed <email> --claim-orphans`.
+- Not scoped: black-box `/v1/ingest`, `/v1/evaluate`, `/v1/jobs/{id}`, and `/v1/blobs/{sha}/{name}` (random ids / content hashes).
+
 ## Login flow
 - `POST /v1/auth/login {email, password}` → checks the scrypt hash (email is trimmed + lower-cased; unknown emails still cost one hash so timing doesn't reveal them) → creates a `user_sessions` row → sets cookie `swc_session` (HttpOnly, SameSite=Lax, `Secure` when `SWC_COOKIE_SECURE=true`, max-age `SWC_SESSION_DAYS`). The DB stores only sha256(token).
 - `GET /v1/auth/me` → `{user | null, auth_required}`. The UI calls it on every page load, so a refresh keeps the user signed in.
@@ -23,6 +29,7 @@ uv run python -m app.auth.seed alice@plant.com --password '...'     # non-intera
 uv run python -m app.auth.seed --file users.json                   # [{"email","name","password"}, ...]
 uv run python -m app.auth.seed --list
 uv run python -m app.auth.seed alice@plant.com --deactivate
+uv run python -m app.auth.seed alice@plant.com --claim-orphans    # SOPs with no uploader -> alice
 ```
 Uses the database from `.env`. Passwords ≥ 8 chars. A reset or deactivation ends all of that user's sessions. In Docker: `docker compose exec api uv run --no-dev python -m app.auth.seed ...`.
 
@@ -32,5 +39,6 @@ Uses the database from `.env`. Passwords ≥ 8 chars. A reset or deactivation en
 
 ## Known gaps
 - No rate limiting / lockout on login.
-- No roles or tenants: every signed-in user sees all data.
+- No roles, teams or sharing: each user sees only their own SOPs (ADR 0010).
+- Jobs and blobs are not scoped by user (unguessable ids).
 - No self-service password change (admin resets via the CLI).

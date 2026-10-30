@@ -22,7 +22,7 @@ erDiagram
 
 | Model | Table | Notes |
 |---|---|---|
-| `SOP` | `sops` | One per standard (station/operation). Revisions ordered by `number`. |
+| `SOP` | `sops` | One per standard (station/operation). Revisions ordered by `number`. `owner_id` = uploader (`users.id`, NULL for API-key / login-off uploads); signed-in users only see their own (ADR 0010). |
 | `Revision` | `revisions` | One per upload. `status`: `ingesting` → `extracted` → `reviewed` (after PUT document), or `failed`. `document` = `SOPDocument` JSON. |
 | `Evidence` | `evidence` | `item` = `EvidenceItem` JSON (level L2/L3). |
 | `Assessment` | `assessments` | `result` = `EvaluationResult` JSON. `revision_id` is null for stateless `/v1/evaluate` calls. `cache_key` = `engine.cache_key(...)`; a cache hit for another revision creates a new row with the same result. |

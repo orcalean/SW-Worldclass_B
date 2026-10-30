@@ -32,6 +32,8 @@ class SOP(Base):
     plant: Mapped[str | None] = mapped_column(String(120))
     line: Mapped[str | None] = mapped_column(String(120))
     station: Mapped[str | None] = mapped_column(String(120))
+    # Uploader. Signed-in users only see their own SOPs; NULL = uploaded via API key / login off (ADR 0010).
+    owner_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     revisions: Mapped[list["Revision"]] = relationship(back_populates="sop", order_by="Revision.number")
 

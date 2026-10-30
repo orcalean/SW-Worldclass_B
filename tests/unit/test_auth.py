@@ -2,7 +2,9 @@ import httpx
 import pytest
 
 from app.auth import hash_password, verify_password
-from app.auth.seed import deactivate, upsert
+from app.auth.seed import claim_orphans, deactivate, upsert
+from app.jobs import runner
+from tests.unit.test_ingestion import SOP_LINES, make_pdf
 
 
 @pytest.fixture
@@ -66,3 +68,49 @@ async def test_deactivate_and_password_reset_end_sessions(client):
 def test_seed_rejects_short_password(offline_env):
     with pytest.raises(ValueError):
         upsert("a@x.com", "short")
+
+
+async def _login(c, email):
+    upsert(email, "password-1")
+    assert (await c.post("/v1/auth/login", json={"email": email, "password": "password-1"})).status_code == 200
+
+
+async def _upload(c, **kw):
+    r = await c.post("/v1/sops", files={"file": ("badge.pdf", make_pdf(SOP_LINES), "application/pdf")}, **kw)
+    assert r.status_code == 202, r.text
+    await runner.drain()
+    return r.json()
+
+
+async def test_sops_are_private_to_their_uploader(client):
+    await _login(client, "alice@x.com")
+    up = await _upload(client)
+    sid = up["sop_id"]
+    a = await client.post(f"/v1/sops/{sid}/revisions/1/assess")
+    await runner.drain()
+    aid = (await client.get(f"/v1/sops/{sid}")).json()["revisions"][0]["latest_assessment_id"]
+    assert aid and a.status_code == 202
+    assert [s["id"] for s in (await client.get("/v1/sops")).json()] == [sid]
+
+    await client.post("/v1/auth/logout")
+    await _login(client, "bob@x.com")
+    assert (await client.get("/v1/sops")).json() == []
+    for path in (f"/v1/sops/{sid}", f"/v1/sops/{sid}/revisions/1/document", f"/v1/assessments/{aid}"):
+        assert (await client.get(path)).status_code == 404, path
+    assert (await client.post(f"/v1/sops/{sid}/revisions/1/assess")).status_code == 404
+    re_up = await client.post("/v1/sops", files={"file": ("x.pdf", make_pdf(SOP_LINES), "application/pdf")}, data={"sop_id": sid})
+    assert re_up.status_code == 404
+
+    # service callers (X-API-Key, no session) still see everything
+    client.cookies.clear()
+    svc = (await client.get("/v1/sops", headers={"X-API-Key": "svc-key"})).json()
+    assert [s["id"] for s in svc] == [sid]
+
+
+async def test_claim_orphans(client):
+    await _upload(client, headers={"X-API-Key": "svc-key"})  # no session -> no owner
+    await _login(client, "carol@x.com")
+    assert (await client.get("/v1/sops")).json() == []
+    assert claim_orphans("carol@x.com") == 1
+    assert len((await client.get("/v1/sops")).json()) == 1
+    assert claim_orphans("nobody@x.com") is None

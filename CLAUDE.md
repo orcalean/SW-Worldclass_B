@@ -65,17 +65,18 @@ docs/                   architecture/, design/, features/, decisions/, progress/
 ```bash
 uv sync
 uv run uvicorn app.main:app --port 8000     # reads .env; SWC_LLM_PROVIDER=offline for a no-key demo
-uv run pytest                                # 34 tests; always on a temp SQLite file, never the .env database
+uv run pytest                                # 36 tests; always on a temp SQLite file, never the .env database
 uv run alembic revision --autogenerate -m "x" # after changing models in app/storage/db.py; review + commit the file
 uv run alembic upgrade head                  # apply migrations (the app also does this on first connect)
 uv run python -m app.auth.seed you@x.com --name "You"   # add / reset a login user (prompts for password)
+uv run python -m app.auth.seed you@x.com --claim-orphans  # SOPs with no uploader (pre-ADR 0010 / API key) -> you
 uv run python -m app.rubric.importer rubrics/source/<file>.xlsx rubrics/quality/core1@1.0.json --dimension Q --core 1 --version 1.0
 # from the parent folder: docker compose up --build   → API + UI together (rebuild after dependency or migration changes)
 ```
 
 ## Adding an endpoint
 1. Pick the module in `app/api/v1/` for that area (or add one with its own `router = APIRouter(...)` and list it in `routes.py`). Put request/response models at the top of that module (or reuse a contract from `app/contracts/`).
-2. Add the handler to that module's `router`. Keep it thin: validate, call `services.*` or a module, map to the response model. Auth comes from the router dependency `require_auth` (session cookie or `X-API-Key`).
+2. Add the handler to that module's `router`. Keep it thin: validate, call `services.*` or a module, map to the response model. Auth comes from the router dependency `require_auth` (session cookie or `X-API-Key`). Anything touching a SOP takes `user: Me` and loads it through `_get_sop` / `_get_revision` in `sops.py`, so other users get 404 (ADR 0010).
 3. Anything that calls an LLM or takes seconds runs as a job: `runner.submit(kind, work)` where `work(stage)` returns `(result_type, result_id, inline_result)`; respond `202` with the job id (see the `ingest` / `evaluate` handlers).
 4. DB: `with db.session() as ses: ...; ses.commit()`. New tables/columns go in `app/storage/db.py`, then `uv run alembic revision --autogenerate` (review the file; it ships with the change).
 5. Test in `tests/unit/test_api.py` with the `client` fixture (offline provider, temp data dir); `await wait(client, job_id)` for jobs.
@@ -114,6 +115,7 @@ uv run python -m app.rubric.importer rubrics/source/<file>.xlsx rubrics/quality/
 - Header metadata is indexed as `field: value` for quote verification (`SOPDocument.all_text`).
 - Without LibreOffice, DOCX/PPTX/XLSX fall back to native extraction (no page renders).
 - Tests run with `SWC_AUTH_REQUIRED=false` (conftest); `test_auth.py` turns login on for its own client.
+- Signed-in users only see SOPs they uploaded (ADR 0010); after upgrading, old SOPs are hidden until `--claim-orphans`.
 - With login on, the local UI needs a seeded user (`python -m app.auth.seed`), or set `SWC_AUTH_REQUIRED=false` in `.env`.
 
 ## How to verify

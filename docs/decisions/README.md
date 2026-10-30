@@ -13,6 +13,7 @@ One file per decision confirmed with the owner. Don't reverse an accepted ADR wi
 | [0007](0007-scoring-policy-defaults.md) | Scoring policy defaults (points, weights, blocking checks, N/A rule) | Accepted | 2026-10-24 |
 | [0008](0008-supabase-postgres-with-alembic.md) | Supabase Postgres for the database; Alembic for migrations | Accepted | 2026-10-27 |
 | [0009](0009-user-login-with-fastapi-sessions.md) | User login: FastAPI sessions in an HttpOnly cookie; seeded users | Accepted | 2026-10-27 |
+| [0010](0010-sops-private-to-uploader.md) | SOPs are private to the user who uploaded them | Accepted | 2026-10-30 |
 
 ## Template
 
