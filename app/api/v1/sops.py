@@ -12,10 +12,11 @@ login-off dev see every SOP.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app import services
 from app.api.v1.common import read_upload
@@ -48,6 +49,7 @@ class RevisionOut(BaseModel):
 class SOPOut(BaseModel):
     id: str
     name: str
+    created_at: str = Field(description="When the SOP was first uploaded, ISO 8601 with UTC offset")
     plant: str | None
     line: str | None
     station: str | None
@@ -66,11 +68,16 @@ class AssessOut(BaseModel):
 
 
 # ---------- helpers ----------
+def _iso(dt: datetime) -> str:
+    """ISO 8601 with offset; SQLite returns naive datetimes, which are stored as UTC."""
+    return (dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)).isoformat()
+
+
 def _revision_out(r: db.Revision) -> RevisionOut:
     a = r.assessments[-1] if r.assessments else None
     doc = r.document or {}
     return RevisionOut(
-        id=r.id, number=r.number, filename=r.filename, status=r.status, created_at=r.created_at.isoformat(),
+        id=r.id, number=r.number, filename=r.filename, status=r.status, created_at=_iso(r.created_at),
         evidence=[EvidenceItem.model_validate(e.item) for e in r.evidence],
         latest_assessment_id=a.id if a else None, score=a.score if a else None,
         benchmark_status=a.status if a else None,
@@ -80,7 +87,7 @@ def _revision_out(r: db.Revision) -> RevisionOut:
 
 
 def _sop_out(s: db.SOP) -> SOPOut:
-    return SOPOut(id=s.id, name=s.name, plant=s.plant, line=s.line, station=s.station,
+    return SOPOut(id=s.id, name=s.name, created_at=_iso(s.created_at), plant=s.plant, line=s.line, station=s.station,
                   revisions=[_revision_out(r) for r in s.revisions])
 
 

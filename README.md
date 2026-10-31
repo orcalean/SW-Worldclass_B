@@ -16,6 +16,19 @@ uv run pytest
 ```
 Both apps at once: from the parent folder, `docker compose up --build`.
 
+## Users
+There is no sign-up page; users are added from the CLI. Each user only sees the SOPs they uploaded.
+```bash
+uv run python -m app.auth.seed you@x.com --name "You"     # add a user, or reset their password (prompts)
+uv run python -m app.auth.seed you@x.com --password 'pw'  # same, without the prompt
+uv run python -m app.auth.seed --file users.json          # many at once: [{"email","name","password"}, ...]
+uv run python -m app.auth.seed --list                     # show all users
+uv run python -m app.auth.seed you@x.com --claim-orphans  # give SOPs with no owner to this user (one-time, after
+                                                          # upgrading; old SOPs stay hidden until claimed)
+uv run python -m app.auth.seed you@x.com --deactivate     # block login and end their sessions
+```
+Local dev without login: set `SWC_AUTH_REQUIRED=false` in `.env`.
+
 ## Black-box API
 ```bash
 curl -F file=@sop.pdf localhost:8000/v1/ingest                       # file -> job -> SOPDocument
