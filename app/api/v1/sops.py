@@ -44,6 +44,8 @@ class RevisionOut(BaseModel):
     benchmark_status: str | None
     gate: str | None
     extraction_warnings: list[str]
+    cost_usd: float = Field(0.0, description="Claude spend for this revision: extraction + every assessment run "
+                                             "(cached results cost 0). Photo-evidence descriptions not included.")
 
 
 class SOPOut(BaseModel):
@@ -54,6 +56,7 @@ class SOPOut(BaseModel):
     line: str | None
     station: str | None
     revisions: list[RevisionOut]
+    cost_usd: float = Field(0.0, description="Sum of the revisions' cost_usd")
 
 
 class UploadOut(BaseModel):
@@ -83,12 +86,15 @@ def _revision_out(r: db.Revision) -> RevisionOut:
         benchmark_status=a.status if a else None,
         gate=(a.result.get("gate") or {}).get("status") if a else None,
         extraction_warnings=doc.get("extraction_warnings", []),
+        cost_usd=round((r.extraction_cost_usd or 0.0)
+                       + sum((x.result.get("usage") or {}).get("cost_usd") or 0.0 for x in r.assessments), 4),
     )
 
 
 def _sop_out(s: db.SOP) -> SOPOut:
+    revs = [_revision_out(r) for r in s.revisions]
     return SOPOut(id=s.id, name=s.name, created_at=_iso(s.created_at), plant=s.plant, line=s.line, station=s.station,
-                  revisions=[_revision_out(r) for r in s.revisions])
+                  revisions=revs, cost_usd=round(sum(r.cost_usd for r in revs), 4))
 
 
 def visible(user: db.User | None, sop: db.SOP | None) -> bool:
@@ -162,12 +168,12 @@ async def upload_sop(
     async def work(stage):
         stage("extracting")
         try:
-            doc, _ = await services.ingest_bytes(fname, data)
+            doc, cost = await services.ingest_bytes(fname, data)
         except Exception:
             _set_rev(rev_id, status="failed")
             raise
         _set_rev(rev_id, status="extracted", document=doc.model_dump(mode="json", by_alias=True),
-                 sha256=doc.source.sha256)
+                 sha256=doc.source.sha256, extraction_cost_usd=cost)
         return "revision", rev_id, None
 
     return UploadOut(sop_id=sop_id_, revision_id=rev_id, revision=number, job_id=runner.submit("ingest", work))

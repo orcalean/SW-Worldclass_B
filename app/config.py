@@ -60,6 +60,8 @@ def sqlalchemy_url(url: str) -> str:
     for prefix in ("postgresql://", "postgres://"):
         if url.startswith(prefix):
             url = "postgresql+psycopg://" + url[len(prefix):]
+    if not url.startswith("postgresql"):
+        return url  # sqlite and others pass through untouched (urlunsplit would mangle sqlite:///relative/path)
     parts = urlsplit(url)
     query = [(k, v) for k, v in parse_qsl(parts.query) if k not in ("pgbouncer", "connection_limit")]
     return urlunsplit(parts._replace(query=urlencode(query)))

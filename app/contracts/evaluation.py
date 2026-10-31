@@ -35,6 +35,8 @@ class CheckResult(BaseModel):
     root_of: str | None = Field(None, description="benchmark_id of the root finding this is a consequence of")
     blocking: bool = False
     suggested_fix: str | None = None
+    needs_level: str | None = Field(None, description="L1 only: 'L3' when the check can't be judged from the SOP "
+                                                       "alone (it depends on governing documents not attached)")
 
 
 class LevelScore(BaseModel):
@@ -75,9 +77,12 @@ class DimensionResult(BaseModel):
 
 
 class Gate(BaseModel):
-    status: str = Field(..., description="passed | blocked")
-    blocking: list[str] = Field(default_factory=list, description="benchmark_ids with blocking gaps")
-    reasons: list[str] = Field(default_factory=list)
+    status: str = Field(..., description="passed | blocked | evidence_required")
+    blocking: list[str] = Field(default_factory=list, description="benchmark_ids with blocking gaps (L1)")
+    reasons: list[str] = Field(default_factory=list, description="One line per blocking gap; L1 only")
+    missing_evidence: list[str] = Field(default_factory=list,
+                                        description="Required levels (L2/L3) with evidence missing; kept apart from "
+                                                    "the L1 blocking reasons")
 
 
 class Overall(BaseModel):
@@ -93,12 +98,13 @@ class WorkElementOverlay(BaseModel):
     seq: int
     title: str
     dimensions: list[str] = Field(default_factory=list)
-    status: str = Field(..., description="verified | gap | blocked | evidence | no_findings")
-    issues: list[str] = Field(default_factory=list, description="Short chip labels")
+    status: str = Field(..., description="verified | gap | blocked | evidence | no_findings (from L1 checks only)")
+    issues: list[str] = Field(default_factory=list, description="Short chip labels (L1)")
     check_ids: list[str] = Field(default_factory=list)
 
 
 class Improvement(BaseModel):
+    level: str = Field("L1", description="L1 = edit the SOP · L2 = station evidence · L3 = governing documents")
     priority: str = Field(..., description="must_fix | evidence | benchmark")
     title: str
     action: str
@@ -126,7 +132,7 @@ class Usage(BaseModel):
 
 
 class EvaluationResult(BaseModel):
-    schema_version: str = "evaluation-result/1.0"
+    schema_version: str = "evaluation-result/1.1"
     engine: EngineInfo
     overall: Overall
     gate: Gate

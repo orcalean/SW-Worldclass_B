@@ -6,6 +6,7 @@ Rules (policy-driven):
 - a check whose root_of points at another gap at the same level is a consequence: shown, not deducted
 - headline score = L1; L2/L3 surface as separate scores + evidence completeness
 - gate blocks on any gap in policy.blocking_checks; missing required L2/L3 evidence holds 'not verified'
+- levels are never mixed: statuses/summaries come from L1; L2/L3 evidence gaps are reported separately
 """
 from __future__ import annotations
 
@@ -95,7 +96,7 @@ def score_core(core: Core, results: list[CheckResult], policy: ScoringPolicy) ->
         levels = {lv: _level_score(checks, lv, policy) for lv in LEVELS}
         subs.append(SubcategoryResult(id=s.id, name=s.name, levels=levels, checks=checks))
     levels = _merge_levels([(s.levels, policy.subcategory_weights.get(s.id, 1.0)) for s in subs], policy)
-    flat = [c for s in subs for c in s.checks]
+    flat = [c for s in subs for c in s.checks if c.level == "L1"]
     if any(c.verdict == Verdict.gap for c in flat):
         status = "gap"
     elif any(c.verdict in (Verdict.evidence_missing, Verdict.partial) for c in flat):
@@ -128,16 +129,18 @@ def score(catalogue: Catalogue, raw: list[CheckResult]) -> tuple[Overall, Gate, 
                                         summary="Not assessed · rubric pending", cores=cores))
             continue
         l1 = _weighted([(c.levels["L1"].score, policy.core_weights.get(c.id, 1.0)) for c in assessed])
-        flat = [chk for c in assessed for s in c.subcategories for chk in s.checks]
+        flat = [chk for c in assessed for s in c.subcategories for chk in s.checks if chk.level == "L1"]
         n_block = len({c.benchmark_id for c in flat if c.blocking})
         n_gap = len({c.benchmark_id for c in flat if c.verdict == Verdict.gap and not c.root_of})
-        n_ev = len({c.benchmark_id for c in flat if c.verdict == Verdict.evidence_missing})
+        n_ev = len({c.benchmark_id for c in flat if c.verdict == Verdict.evidence_missing and not c.needs_level})
         if n_block:
             status, summary = "bad", f"{n_block} blocking gap{'s' if n_block > 1 else ''}"
         elif n_gap:
             status, summary = "warn", f"{n_gap} gap{'s' if n_gap > 1 else ''}"
         elif n_ev:
             status, summary = "warn", f"{n_ev} evidence gap{'s' if n_ev > 1 else ''}"
+        elif n_l3 := len({c.benchmark_id for c in flat if c.needs_level}):
+            status, summary = "warn", f"{n_l3} check{'s' if n_l3 > 1 else ''} need L3 documents"
         else:
             status, summary = "good", "verified"
         if l1 is not None and l1 < policy.benchmark and status == "good":
@@ -156,8 +159,7 @@ def score(catalogue: Catalogue, raw: list[CheckResult]) -> tuple[Overall, Gate, 
         reasons.append(f"{bid} · {chk.requirement if chk else bid}")
     missing_lv = [lv for lv in policy.require_evidence_levels if levels and (levels[lv].evidence_missing or 0) > 0]
     gate_status = "blocked" if blocking else ("evidence_required" if missing_lv else "passed")
-    gate = Gate(status=gate_status, blocking=blocking, reasons=reasons +
-                [f"{lv} evidence incomplete ({completeness.get(lv)}%)" for lv in missing_lv])
+    gate = Gate(status=gate_status, blocking=blocking, reasons=reasons, missing_evidence=missing_lv)
 
     verified = headline is not None and headline >= policy.benchmark and gate_status == "passed"
     if verified:

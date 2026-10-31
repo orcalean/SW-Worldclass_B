@@ -84,3 +84,12 @@ async def test_evidence_improvements_collapse_when_level_has_no_evidence():
     ev = [i for i in res.improvements if i.priority == "evidence"]
     assert [i.title for i in ev] == ["Attach L2 station evidence", "Attach L3 governing evidence"]
     assert all(len(i.check_ids) == 56 for i in ev)
+
+
+def test_clean_text_strips_leaked_json_only():
+    from app.evaluation.assessor import clean_text
+
+    assert clean_text("State the pass/fail rule.“}, {") == "State the pass/fail rule."
+    assert clean_text('Add limits."}') == "Add limits."
+    assert clean_text("Use 40 ± 5 N {see ES-1}") == "Use 40 ± 5 N {see ES-1}"
+    assert clean_text("  ") is None

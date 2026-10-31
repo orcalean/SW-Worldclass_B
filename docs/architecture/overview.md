@@ -52,7 +52,7 @@ Black-box callers use the stateless pair `POST /v1/ingest` (file → `SOPDocumen
 
 ## Deployment
 - Local: two processes from two repos: `uv run uvicorn app.main:app --port 8000` here, and `npm run dev` in the frontend repo (:5173, proxies `/v1` to `API_PROXY_TARGET`). Each repo reads its own `.env`.
-- Docker: `docker-compose.yml` in the **parent folder** (outside both repos) runs both at once: `api` (this repo's `Dockerfile`, includes LibreOffice for DOCX/PPTX/XLSX rendering, data volume `/data`) and `ui` (node dev server on the frontend repo). Run `docker compose up --build` from the parent folder. Not yet built or tested.
+- Docker: `docker-compose.yml` in the **parent folder** (outside both repos) runs both at once: `api` (this repo's `Dockerfile`, includes LibreOffice for DOCX/PPTX/XLSX rendering, data volume `/data`) and `ui` (node dev server on the frontend repo). Run `docker compose up --build` from the parent folder. Production: `docker-compose.prod.yml` + `DEPLOY.md` in the parent folder (nginx serves the built UI over HTTPS and proxies `/v1` to the API; tested locally with a self-signed cert).
 - No production deployment exists yet.
 
 ## Phases

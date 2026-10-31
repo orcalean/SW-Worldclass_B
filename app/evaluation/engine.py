@@ -14,7 +14,7 @@ from app.rubric.registry import Catalogue
 from app.scoring import improvements as imp
 from app.scoring.scorer import score
 
-ENGINE_VERSION = "0.1.2"
+ENGINE_VERSION = "0.2.0"
 
 
 def cache_key(doc: SOPDocument, evidence: list[EvidenceItem], catalogue: Catalogue, llm_name: str, model: str) -> str:

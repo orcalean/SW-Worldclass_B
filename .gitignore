@@ -4,3 +4,4 @@
 **/.pytest_cache/
 data/
 .DS_Store
+tests/golden/.work/

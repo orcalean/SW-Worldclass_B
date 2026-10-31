@@ -104,3 +104,42 @@ def test_deterministic_regardless_of_input_order():
         rng.shuffle(shuffled)
         again = score(CAT, shuffled)
         assert again[0] == base[0] and again[1] == base[1] and again[2] == base[2]
+
+
+# --- levels are never mixed ---------------------------------------------------------------------------------
+
+def _missing(level):
+    return [cr(c.benchmark_id, level, Verdict.evidence_missing) for c in CORE.checks()]
+
+
+def test_gate_reasons_are_l1_only_and_missing_evidence_is_separate():
+    rs = [r if r.benchmark_id != "Q01-8-02" else cr("Q01-8-02", verdict=Verdict.gap) for r in all_met()]
+    _, gate, _, _ = score(CAT, rs + _missing("L2") + _missing("L3"))
+    assert gate.reasons == ["Q01-8-02 · " + CAT.check("Q01-8-02").requirement]
+    assert gate.missing_evidence == ["L2", "L3"]
+
+
+def test_step_status_ignores_l2_l3():
+    from app.contracts.sop import SOPDocument
+    from app.scoring.improvements import overlay
+
+    doc = SOPDocument.model_validate({"source": {"format": "pdf", "sha256": "x", "pages": 1},
+                                      "work_elements": [{"id": "we-1", "seq": 1, "title": "Load badge"}]})
+    rs = [cr("Q01-1-01", work_element_ids=["we-1"]),
+          cr("Q01-1-01", "L2", Verdict.evidence_missing, work_element_ids=["we-1"])]
+    w = overlay(doc, rs)[0]
+    assert w.status == "verified" and w.check_ids == ["Q01-1-01"]
+
+
+def test_needs_l3_check_moves_to_the_l3_item_not_an_l1_fix():
+    from app.scoring.improvements import improvements
+
+    rs = [r if r.benchmark_id != "Q01-10-03" else
+          cr("Q01-10-03", verdict=Verdict.evidence_missing, needs_level="L3",
+             rationale="Only the Control Plan says whether operator awareness is required.")
+          for r in all_met()] + _missing("L2") + _missing("L3")
+    items = improvements(CAT, score(CAT, rs)[3])
+    assert not [i for i in items if i.level == "L1"]
+    l3 = next(i for i in items if i.level == "L3")
+    assert "Q01-10-03" in l3.action and l3.priority == "evidence"
+    assert {i.level for i in items} == {"L2", "L3"}

@@ -47,6 +47,8 @@ class Revision(Base):
     sha256: Mapped[str | None] = mapped_column(String(64), index=True)
     status: Mapped[str] = mapped_column(String(20), default="ingesting")  # ingesting|extracted|reviewed|failed
     document: Mapped[dict | None] = mapped_column(JSON)
+    # What reading the file actually cost (0 when the extraction cache was hit; NULL = not recorded).
+    extraction_cost_usd: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
     sop: Mapped[SOP] = relationship(back_populates="revisions")
     evidence: Mapped[list["Evidence"]] = relationship(back_populates="revision")

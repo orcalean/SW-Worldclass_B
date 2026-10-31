@@ -1,0 +1,42 @@
+{
+  "name": "Badge Install (HEMI badge, Trim 2 station 1940L)",
+  "source": "Client golden set, 2026-10-31. V1.1 = before, V2.0 = after; V2.0's revision history lists the client's own changes.",
+  "files": {
+    "sop-0002-v3.pdf": {
+      "label": "SOP-0002 v3",
+      "role": "weak",
+      "notes": "6 one-line steps, revision + date, no line/station, no limits, no reaction plan."
+    },
+    "sw-0002-v1.1-before.pdf": {
+      "label": "SW-0002 V1.1",
+      "role": "before",
+      "notes": "Approved header with line/station, green button, 'STOP and notify the team leader'. No limits, no PPE, no reasons."
+    },
+    "sw-0002-v2.0-after.pdf": {
+      "label": "SW-0002 V2.0",
+      "role": "after",
+      "notes": "Client's improved version: part check, PPE, 16-43 °C, start-of-shift check, key points + why, one-direction wipe + dry, 15 psi / 5 s, ±1.5 mm, reaction plan, training sign-off, Quality/Safety approval."
+    }
+  },
+  "ranking_low_to_high": ["sop-0002-v3.pdf", "sw-0002-v1.1-before.pdf", "sw-0002-v2.0-after.pdf"],
+  "strict_ranking": [["sw-0002-v1.1-before.pdf", "sw-0002-v2.0-after.pdf"], ["sop-0002-v3.pdf", "sw-0002-v2.0-after.pdf"]],
+  "after_must_not_fail": {
+    "Q01-7-01": "V2.0 marks Steps 2 and 5 QUALITY CRITICAL",
+    "Q01-11-03": "V2.0 has a reaction plan: hold tag, call team leader, stop the station on repeat defects",
+    "Q01-3-01": "V2.0 states 15 psi, 5 s, ±1.5 mm, 25 mm, 16-43 °C"
+  },
+  "client_changes_before_to_after": {
+    "part check": ["part number", "build sheet", "correct badge", "wrong badge", "part check", "variant"],
+    "ppe": ["ppe", "glove", "safety glasses", "protective"],
+    "temperature limits": ["temperature", "°c", "°f", "condensation"],
+    "start-of-shift check": ["start of shift", "start-of-shift", "first piece", "first-piece", "fixture check", "setup check"],
+    "key points and reasons": ["key point", "reason", "why"],
+    "one-direction wipe + dry": ["wipe", "dry", "clean"],
+    "15 psi pressure": ["psi", "pressure", "force"],
+    "±1.5 mm position limit": ["tolerance", " mm", "position limit", "±", "acceptance limit"],
+    "reaction plan": ["reaction", "escalat", "nonconform", "defect is found", "hold tag", "scrap"],
+    "training sign-off": ["training", "sign-off", "qualif"],
+    "quality / safety approval": ["approv", "sign"]
+  },
+  "l1_must_not_demand": ["control plan", "pfmea", "vin", "model year", "drawing number", "change notice", "classification standard"]
+}

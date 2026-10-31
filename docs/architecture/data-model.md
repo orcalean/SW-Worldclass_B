@@ -23,7 +23,7 @@ erDiagram
 | Model | Table | Notes |
 |---|---|---|
 | `SOP` | `sops` | One per standard (station/operation). Revisions ordered by `number`. `owner_id` = uploader (`users.id`, NULL for API-key / login-off uploads); signed-in users only see their own (ADR 0010). |
-| `Revision` | `revisions` | One per upload. `status`: `ingesting` → `extracted` → `reviewed` (after PUT document), or `failed`. `document` = `SOPDocument` JSON. |
+| `Revision` | `revisions` | One per upload. `status`: `ingesting` → `extracted` → `reviewed` (after PUT document), or `failed`. `document` = `SOPDocument` JSON. `extraction_cost_usd` = what reading the file cost (0 on an extraction-cache hit, NULL = not recorded; backfilled from the cache by migration `a3f9c2d1e8b7`). The API adds `cost_usd` per revision (extraction + every assessment's `usage.cost_usd`) and per SOP (sum). Photo-evidence descriptions are not counted yet. |
 | `Evidence` | `evidence` | `item` = `EvidenceItem` JSON (level L2/L3). |
 | `Assessment` | `assessments` | `result` = `EvaluationResult` JSON. `revision_id` is null for stateless `/v1/evaluate` calls. `cache_key` = `engine.cache_key(...)`; a cache hit for another revision creates a new row with the same result. |
 | `ExtractionCache` | `extraction_cache` | key = sha256(file sha + `EXTRACT_PROMPT_VERSION` + provider + model). |

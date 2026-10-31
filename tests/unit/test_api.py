@@ -79,6 +79,18 @@ async def test_workspace_upload_review_evidence_assess_reupload(client):
     await wait(client, r2.json()["job_id"])
     assert [x["number"] for x in (await client.get(f"/v1/sops/{sid}")).json()["revisions"]] == [1, 2]
 
+    # cost = extraction + every assessment run, per revision; the SOP sums its revisions
+    from app.storage import db
+    with db.session() as ses:
+        r1 = ses.query(db.Revision).filter_by(sop_id=sid, number=1).one()
+        r1.extraction_cost_usd = 0.02
+        a = r1.assessments[-1]
+        a.result = {**a.result, "usage": {**a.result["usage"], "cost_usd": 0.1}}
+        ses.commit()
+    sop = (await client.get(f"/v1/sops/{sid}")).json()
+    assert sop["revisions"][0]["cost_usd"] == 0.12
+    assert sop["cost_usd"] == round(sum(x["cost_usd"] for x in sop["revisions"]), 4)
+
 
 async def test_rejects_unsupported_and_unknown(client):
     r = await client.post("/v1/ingest", files={"file": ("x.txt", b"hello", "text/plain")})
@@ -106,3 +118,11 @@ def _png() -> bytes:
     buf = io.BytesIO()
     Image.new("RGB", (64, 64), (120, 120, 120)).save(buf, "PNG")
     return buf.getvalue()
+
+
+def test_database_urls_are_normalised_only_for_postgres():
+    from app.config import sqlalchemy_url
+
+    assert sqlalchemy_url("sqlite:///tests/x.db") == "sqlite:///tests/x.db"
+    assert sqlalchemy_url("sqlite:////abs/x.db") == "sqlite:////abs/x.db"
+    assert sqlalchemy_url("postgresql://u:p@h:6543/db?pgbouncer=true") == "postgresql+psycopg://u:p@h:6543/db"

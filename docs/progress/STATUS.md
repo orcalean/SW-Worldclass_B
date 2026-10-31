@@ -9,6 +9,8 @@ Phase 1 is built end-to-end: upload → extraction review → optional L2/L3 evi
 - Nothing.
 
 ## Todo
+- **Golden-set follow-up (badge, 2026-10-31):** Claude over-uses `needs_l3`: it deferred Q01-7-01 and Q01-7-04 on weak SOPs, but their L1 rules aren't conditional, so red cards stopped firing and v3 rose 28.7 → 46.3. Proposed: allow `needs_l3` only on the 21 L1 rules that start with if/when/where (rubric data), re-ask otherwise.
+- Separation is weak: V1.1 63.1 vs V2.0 66.1, and V2.0 gets more L1 fixes (26) than V1.1 (20) because it has more partials (24). Needs fix grouping (root cause) and an owner decision on how strict 'partial' should be.
 - Run real audits on the owner's sample PDFs (best case first: digital PDFs).
 - Decide how conditional checks ("where relevant", e.g. 1.12 traceability) should be judged when the SOP doesn't mention them: real run marked them `gap` (owner decision).
 - Root-cause de-dup only works within one subcategory call; one root (e.g. undefined force) produced ~10 gaps across subcategories (design decision needed).

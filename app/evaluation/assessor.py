@@ -9,6 +9,7 @@ Cost/reliability design:
 from __future__ import annotations
 
 import asyncio
+import re
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -32,10 +33,22 @@ class LLMCheck(BaseModel):
     confidence: float = Field(ge=0, le=1)
     root_of: str | None = None
     suggested_fix: str | None = None
+    needs_l3: bool = False
 
 
 class SubcategoryAssessment(BaseModel):
     checks: list[LLMCheck]
+
+
+# Structured output occasionally leaks JSON punctuation into the end of a string ('…the rule.“}, {').
+_JSON_TAIL = re.compile(r'\s*["“”]\s*[}\]]\s*(,\s*[{\[]\s*)?["“”]?\s*$')
+
+
+def clean_text(s: str | None) -> str | None:
+    if s is None:
+        return None
+    s = _JSON_TAIL.sub("", s.strip()).strip()
+    return s or None
 
 
 class Assessor:
@@ -126,12 +139,14 @@ class Assessor:
                 conf = c.confidence
                 if c.quotes and not any(r.verified for r in refs):
                     conf = min(conf, 0.3)
+                # needs L3 only makes sense for an L1 check the model couldn't judge, and only while no L3 is attached
+                needs = lv == "L1" and c.needs_l3 and c.verdict == "evidence_missing" and "L3" not in levels
                 out_results.append(CheckResult(
                     benchmark_id=chk.benchmark_id, subcategory_id=sub.id, requirement=chk.requirement,
-                    level=lv, verdict=Verdict(c.verdict), rationale=c.rationale.strip(), evidence=refs,
+                    level=lv, verdict=Verdict(c.verdict), rationale=clean_text(c.rationale) or "", evidence=refs,
                     confidence=conf, work_element_ids=[w for w in c.work_element_ids if w in we_ids],
                     root_of=c.root_of if c.root_of in core_ids and c.root_of != chk.benchmark_id else None,
-                    suggested_fix=c.suggested_fix,
+                    suggested_fix=clean_text(c.suggested_fix), needs_level="L3" if needs else None,
                 ))
         return out_results
 
